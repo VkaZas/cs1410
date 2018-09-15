@@ -281,15 +281,19 @@ def tilegame_heuristic(state):
 
 	"""
 
-    cnt = 0
+    dist = 0
     sample = ((1, 2, 3), (4, 5, 6), (7, 8, 9))
+    pos = {}
     for i in range(3):
         for j in range(3):
-            if state[i][j] != sample[i][j]:
-                cnt += 1
+            pos[sample[i][j]] = (i, j)
 
-    return cnt / 2.0
+    for i in range(3):
+        for j in range(3):
+            p = pos[state[i][j]]
+            dist += abs(p[0] - i) + abs(p[1] - j)
 
+    return dist / 2.0
 
 ### YOUR SANDBOX ###
 
