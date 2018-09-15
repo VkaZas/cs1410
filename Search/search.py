@@ -164,6 +164,7 @@ def ids(problem):
 
     return []
 
+
 def bds(problem, goal):
     """
 	Implement bi-directional search.
@@ -206,14 +207,13 @@ def bds(problem, goal):
 
             return ans
 
-        # print(head_state)
-
         next_states = [s for s in problem.get_successors(head_state).keys() if s not in prev[q_idx]]
         for next_state in next_states:
             prev[q_idx][next_state] = head_state
             q[q_idx].put(next_state)
 
         q_idx = 1 - q_idx
+
 
 def astar(problem, heur):
     """
@@ -232,7 +232,38 @@ def astar(problem, heur):
 	Output: a list of states representing the path of the solution
 
 	"""
-    pass
+
+    start_state = problem.get_start_state()
+    dist = {start_state: 0}
+    prev = {start_state: None}
+    q = PriorityQueue()
+    q.put((heur(start_state), start_state))
+
+    ans = []
+
+    while not q.empty():
+        head_f, head_state = q.get()
+
+        # Found goal state
+        if problem.is_goal_state(head_state):
+            while head_state is not None:
+                ans.append(head_state)
+                head_state = prev.get(head_state)
+            ans.reverse()
+            return ans
+
+        # Extend current state
+        next_states = problem.get_successors(head_state)
+        for next_state in next_states:
+
+            if next_state in dist:
+                continue
+
+            dist[next_state] = dist.get(head_state) + 1
+            q.put((heur(next_state) + dist.get(next_state), next_state))
+            prev[next_state] = head_state
+
+    return ans
 
 
 ### SPECIFIC TO THE TILEGAME PROBLEM
@@ -249,7 +280,15 @@ def tilegame_heuristic(state):
 	Output: an integer
 
 	"""
-    pass
+
+    cnt = 0
+    sample = ((1, 2, 3), (4, 5, 6), (7, 8, 9))
+    for i in range(3):
+        for j in range(3):
+            if state[i][j] != sample[i][j]:
+                cnt += 1
+
+    return cnt / 2.0
 
 
 ### YOUR SANDBOX ###
@@ -268,8 +307,9 @@ def main():
     # path = bfs(tg)
     # path = dfs(tg)
     # path = ids(tg)
-    path = bds(tg, ((1,2,3),(4,5,6),(7,8,9)))
+    # path = bds(tg, ((1, 2, 3), (4, 5, 6), (7, 8, 9)))
     # path = bds(tg, ((1,2),(3,4)))
+    path = astar(tg, tilegame_heuristic)
     # display path
     TileGame.print_pretty_path(path)
     print(len(path))
