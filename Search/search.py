@@ -6,15 +6,6 @@ from queue import Queue, LifoQueue, PriorityQueue
 
 
 def bfs(problem):
-    """
-	Implement breadth-first search.
-
-	Input:
-		problem - the problem on which the search is conducted, a SearchProblem
-
-	Output: a list of states representing the path of the solution
-
-	"""
     start_state = problem.get_start_state()
     dist = {start_state: 0}
     prev = {start_state: None}
@@ -48,59 +39,7 @@ def bfs(problem):
     return ans
 
 
-# def helper_dfs(state, vis, ans, dep, problem):
-#     if dep > 50:
-#         return False
-#
-#     if problem.is_goal_state(state):
-#         print(state)
-#         return True
-#
-#     next_states = problem.get_successors(state)
-#     for next_state in next_states:
-#
-#         if next_state in vis and vis[next_state] >= dep:
-#             continue
-#
-#         vis[next_state] = dep
-#         ans.append(next_state)
-#         is_found = helper_dfs(next_state, vis, ans, dep + 1, problem)
-#         if is_found:
-#             return True
-#         # vis.pop(next_state)
-#         ans.pop()
-#
-#     return False
-#
-#
-# def dfs(problem):
-#     """
-#     Implement depth-first search.
-#
-#     Input:
-#         problem - the problem on which the search is conducted, a SearchProblem
-#
-#     Output: a list of states representing the path of the solution
-#
-#     """
-#     start_state = problem.get_start_state()
-#     ans = [start_state]
-#     vis = {start_state: 0}
-#
-#     helper_dfs(start_state, vis, ans, 1, problem)
-#     return ans
-
 def dfs(problem):
-    """
-	Implement depth-first search.
-
-	Input:
-		problem - the problem on which the search is conducted, a SearchProblem
-
-	Output: a list of states representing the path of the solution
-
-	"""
-
     start_state = problem.get_start_state()
     ans = []
     prev = {start_state: None}
@@ -144,15 +83,6 @@ def helper(state, vis, ans, dep, problem):
 
 
 def ids(problem):
-    """
-    Implement iterative deepening search.
-
-    Input:
-        problem - the problem on which the search is conducted, a SearchProblem
-
-    Output: a list of states representing the path of the solution
-
-    """
     for max_depth in range(1000):
         start_state = problem.get_start_state()
         ans = [start_state]
@@ -166,23 +96,6 @@ def ids(problem):
 
 
 def bds(problem, goal):
-    """
-	Implement bi-directional search.
-
-	The input 'goal' is a goal state (not a search problem, just a state)
-	from which to begin the search toward the start state.
-
-	Assume that the input search problem can be thought of as
-	an undirected graph. That is, all actions in the search problem
-	are reversible.
-
-	Input:
-		problem - the problem on which the search is conducted, a SearchProblem
-
-	Output: a list of states representing the path of the solution
-
-	"""
-
     q = [Queue(), Queue()]
     q_idx = 0
     start_state = problem.get_start_state()
@@ -200,7 +113,7 @@ def bds(problem, goal):
                 now_state = prev[0][now_state]
             ans.reverse()
 
-            now_state = head_state
+            now_state = prev[1][head_state]
             while now_state is not None:
                 ans.append(now_state)
                 now_state = prev[1][now_state]
@@ -216,23 +129,6 @@ def bds(problem, goal):
 
 
 def astar(problem, heur):
-    """
-	Implement A* search.
-
-	The given heuristic function will take in a state of the search problem
-	and produce a real number
-
-	Your implementation should be able to work with any heuristic, heur
-	that is for the given search problem (but, of course, without a
-	guarantee of optimality if heur is not admissible).
-
-	Input:
-		problem - the problem on which the search is conducted, a SearchProblem
-
-	Output: a list of states representing the path of the solution
-
-	"""
-
     start_state = problem.get_start_state()
     dist = {start_state: 0}
     prev = {start_state: None}
@@ -270,17 +166,6 @@ def astar(problem, heur):
 
 
 def tilegame_heuristic(state):
-    """
-	Produces a real number for the given tile game state representing
-	an estimate of the cost to get to the goal state.
-
-	Input:
-		state - the tilegame state to evaluate. Consult handout for how the tilegame state is represented
-
-	Output: an integer
-
-	"""
-
     dist = 0
     sample = ((1, 2, 3), (4, 5, 6), (7, 8, 9))
     pos = {}
@@ -306,14 +191,14 @@ def main():
     # sys.setrecursionlimit(100000)
     # initialize a random 3x3 TileGame problem
     tg = TileGame(3)
-    print(TileGame.board_to_pretty_string(tg.get_start_state()))
+    # print(TileGame.board_to_pretty_string(tg.get_start_state()))
     # compute path
     # path = bfs(tg)
     # path = dfs(tg)
     # path = ids(tg)
-    # path = bds(tg, ((1, 2, 3), (4, 5, 6), (7, 8, 9)))
+    path = bds(tg, ((1, 2, 3), (4, 5, 6), (7, 8, 9)))
     # path = bds(tg, ((1,2),(3,4)))
-    path = astar(tg, tilegame_heuristic)
+    # path = astar(tg, tilegame_heuristic)
     # display path
     TileGame.print_pretty_path(path)
     print(len(path))
