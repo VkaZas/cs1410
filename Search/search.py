@@ -48,18 +48,18 @@ def dfs(problem):
 
     while not stack.empty():
         head_state = stack.get()
-        if problem.is_goal_state(head_state):
-            while head_state is not None:
-                ans.append(head_state)
-                head_state = prev.get(head_state)
-            ans.reverse()
-            return ans
-
         next_states = [s for s in problem.get_successors(head_state).keys() if s not in prev]
 
         for next_state in next_states:
             stack.put(next_state)
             prev[next_state] = head_state
+
+            if problem.is_goal_state(next_state):
+                while next_state is not None:
+                    ans.append(next_state)
+                    next_state = prev.get(next_state)
+                ans.reverse()
+                return ans
 
 
 def helper(state, vis, ans, dep, problem):
@@ -70,6 +70,11 @@ def helper(state, vis, ans, dep, problem):
         return True
 
     next_states = problem.get_successors(state)
+    for next_state in next_states:
+        if problem.is_goal_state(next_state):
+            ans.append(next_state)
+            return True
+
     for next_state in next_states:
         if (next_state not in vis) or (vis[next_state] < dep - 1):
             vis[next_state] = dep - 1
@@ -89,6 +94,7 @@ def ids(problem):
 
         vis = {start_state: max_depth}
         is_found = helper(start_state, vis, ans, max_depth, problem)
+        print(len(vis))
         if is_found:
             return ans
 
@@ -195,8 +201,8 @@ def main():
     # compute path
     # path = bfs(tg)
     # path = dfs(tg)
-    # path = ids(tg)
-    path = bds(tg, ((1, 2, 3), (4, 5, 6), (7, 8, 9)))
+    path = ids(tg)
+    # path = bds(tg, ((1, 2, 3), (4, 5, 6), (7, 8, 9)))
     # path = bds(tg, ((1,2),(3,4)))
     # path = astar(tg, tilegame_heuristic)
     # display path
