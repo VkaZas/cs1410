@@ -33,6 +33,7 @@ def run_game(asp, bots, visualizer=None, delay=0.2):
         # if the bot tries to make an invalid action,
         # returns the first valid action
         if not decision in available_actions:
+            print('Player' + str(state.player_to_move()) + ' is not doing well!!')
             decision = list(available_actions)[0]
 
         result_state = asp.transition(state, decision)
@@ -49,6 +50,8 @@ def run_game(asp, bots, visualizer=None, delay=0.2):
 def main():
     game = TTTProblem()
     bots = [MyImplementation.minimax, MyImplementation.minimax]
+    # bots = [MyImplementation.alpha_beta, MyImplementation.alpha_beta]
+    # bots = [MyImplementation.alpha_beta_cutoff, MyImplementation.alpha_beta_cutoff]
 
     # runs game and prints final scores
     print(run_game(game, bots, TTTProblem.visualize_state))

@@ -69,7 +69,7 @@ class IOTest(unittest.TestCase):
         self._check_result(result, dag)
 
     def _dummy_eval_func(self, gameState):
-        return 0
+        return [0, 1]
 
     def test_minimax(self):
         self._general_check_algorithm(minimax)
