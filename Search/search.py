@@ -60,6 +60,7 @@ def dfs(problem):
                     next_state = prev.get(next_state)
                 ans.reverse()
                 return ans
+    return [start_state]
 
 
 def helper(state, vis, ans, dep, problem):
@@ -94,7 +95,6 @@ def ids(problem):
 
         vis = {start_state: max_depth}
         is_found = helper(start_state, vis, ans, max_depth, problem)
-        print(len(vis))
         if is_found:
             return ans
 
@@ -110,26 +110,29 @@ def bds(problem, goal):
     q[1].put(goal)
 
     while True:
-        head_state = q[q_idx].get()
-        if head_state in prev[1 - q_idx]:
-            ans = []
-            now_state = head_state
-            while now_state is not None:
-                ans.append(now_state)
-                now_state = prev[0][now_state]
-            ans.reverse()
+        qt = Queue()
+        while not q[q_idx].empty():
+            head_state = q[q_idx].get()
+            if head_state in prev[1 - q_idx]:
+                ans = []
+                now_state = head_state
+                while now_state is not None:
+                    ans.append(now_state)
+                    now_state = prev[0][now_state]
+                ans.reverse()
 
-            now_state = prev[1][head_state]
-            while now_state is not None:
-                ans.append(now_state)
-                now_state = prev[1][now_state]
+                now_state = prev[1][head_state]
+                while now_state is not None:
+                    ans.append(now_state)
+                    now_state = prev[1][now_state]
 
-            return ans
+                return ans
 
-        next_states = [s for s in problem.get_successors(head_state).keys() if s not in prev[q_idx]]
-        for next_state in next_states:
-            prev[q_idx][next_state] = head_state
-            q[q_idx].put(next_state)
+            next_states = [s for s in problem.get_successors(head_state).keys() if s not in prev[q_idx]]
+            for next_state in next_states:
+                prev[q_idx][next_state] = head_state
+                qt.put(next_state)
+        q[q_idx] = qt
 
         q_idx = 1 - q_idx
 
@@ -140,11 +143,12 @@ def astar(problem, heur):
     prev = {start_state: None}
     q = PriorityQueue()
     q.put((heur(start_state), start_state))
-
+    vis = {}
     ans = []
 
     while not q.empty():
         head_f, head_state = q.get()
+        vis[head_state] = True
 
         # Found goal state
         if problem.is_goal_state(head_state):
@@ -158,7 +162,7 @@ def astar(problem, heur):
         next_states = problem.get_successors(head_state)
         for next_state in next_states:
 
-            if next_state in dist:
+            if next_state in vis:
                 continue
 
             dist[next_state] = dist.get(head_state) + 1
@@ -201,8 +205,8 @@ def main():
     # compute path
     # path = bfs(tg)
     # path = dfs(tg)
-    path = ids(tg)
-    # path = bds(tg, ((1, 2, 3), (4, 5, 6), (7, 8, 9)))
+    # path = ids(tg)
+    path = bds(tg, ((1, 2, 3), (4, 5, 6), (7, 8, 9)))
     # path = bds(tg, ((1,2),(3,4)))
     # path = astar(tg, tilegame_heuristic)
     # display path
