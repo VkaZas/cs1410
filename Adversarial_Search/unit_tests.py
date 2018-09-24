@@ -33,7 +33,7 @@ class IOTest(unittest.TestCase):
         ]
         start_state = DAGState(0, 0)
         terminal_indices = set([3, 4, 5, 6])
-        evaluations_at_terminal = {3: [-1, 1], 4: [-2, 2], 5: [-3, 3], 6: [-4, 4]}
+        evaluations_at_terminal = {3: [-10, 10], 4: [-20, 20], 5: [-3, 3], 6: [-4, 4]}
         turns = [0, 1, 1, 0, 0, 0, 0]
         dag = GameDAG(
             matrix, start_state, terminal_indices, evaluations_at_terminal, turns
@@ -49,6 +49,7 @@ class IOTest(unittest.TestCase):
                     This should be an action
                 dag- the GameDAG that was used to test the algorithm
         """
+        # print(result)
         self.assertIsNotNone(result, "Output should not be None")
         start_state = dag.get_start_state()
         potentialActions = dag.get_available_actions(start_state)
@@ -69,7 +70,7 @@ class IOTest(unittest.TestCase):
         self._check_result(result, dag)
 
     def _dummy_eval_func(self, gameState):
-        return [0, 1]
+        return 0
 
     def test_minimax(self):
         self._general_check_algorithm(minimax)

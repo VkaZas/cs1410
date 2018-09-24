@@ -49,9 +49,10 @@ def run_game(asp, bots, visualizer=None, delay=0.2):
 
 def main():
     game = TTTProblem()
-    bots = [MyImplementation.minimax, MyImplementation.minimax]
+    # bots = [MyImplementation.minimax, MyImplementation.minimax]
     # bots = [MyImplementation.alpha_beta, MyImplementation.alpha_beta]
     # bots = [MyImplementation.alpha_beta_cutoff, MyImplementation.alpha_beta_cutoff]
+    bots = [MyImplementation.general_minimax, MyImplementation.general_minimax]
 
     # runs game and prints final scores
     print(run_game(game, bots, TTTProblem.visualize_state))
