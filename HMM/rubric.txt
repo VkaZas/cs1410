@@ -1,0 +1,30 @@
+Autograded [110]
+----generic hmm [60]
+--------HMM produces a valid probability distribution [5]
+--------produces correct probabilities for current    [20]
+        timestep
+--------produces correct probabilities for future     [15]
+        timesteps
+--------HMM works when the number of hidden states    [20]
+        observations are different
+----touchscreen filtering [50]
+--------filter_noisy_data performance [50]
+------------autograded accuracy                       [35]
+------------autograded consistency                    [15]
+--------extra-credit performance [0]
+------------touchscreen_smoothing                     [10]
+            (extra-credit)
+------------touchscreen_prediction                    [10]
+            (extra-credit)
+Written [40]
+----writeup [40]
+--------description of HMM                            [15]
+        (question 1)
+--------description of model choices                  [10]
+        (question 2)
+--------description of assumptions made               [10]
+        (question 3)
+--------description of past approaches                [5]
+        (question 4)
+
+Total [150]

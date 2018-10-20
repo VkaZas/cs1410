@@ -131,6 +131,9 @@ def general_minimax_helper(asp, state, player, cnt):
         if worst_score is None or score < worst_score:
             worst_score = score
 
+        if state.player_to_move() == player:
+            worst_score = best_score
+
     return worst_score, best_action
 
 
