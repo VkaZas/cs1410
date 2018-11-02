@@ -1,4 +1,4 @@
-# Implement your HMM for Part 1 here!
+import numpy as np
 
 
 class HMM:
@@ -24,7 +24,11 @@ class HMM:
         - num_states: this is the number of hidden states in the HMM, an integer
         """
         # Initialize your HMM here!
-        pass
+        self.O = sensor_model
+        self.T = transition_model
+        self.num_states = num_states
+        self.F = np.array([1.0 / num_states for i in range(num_states)])
+        self.time_stamp = 0
 
     def tell(self, observation):
         """
@@ -39,7 +43,12 @@ class HMM:
         - None
         """
         # Write your code here!
-        pass
+        self.time_stamp += 1
+        tmp_F = np.zeros(self.num_states)
+        for k in range(self.num_states):
+            tmp_F[k] = self.O(observation, k) * np.sum([self.T(i, k) for i in range(self.num_states)] * self.F)
+
+        self.F = tmp_F / np.linalg.norm(tmp_F, ord=1)
 
     def ask(self, time):
         """
@@ -55,4 +64,14 @@ class HMM:
         - a probability distribution over the hidden state for the given timestep, a list of numbers
         """
         # Write your code here!
-        pass
+        pred_F = np.copy(self.F)
+
+        for i in range(time - self.time_stamp):
+            tmp_F = np.zeros(self.num_states)
+            for cur in range(self.num_states):
+                for prev in range(self.num_states):
+                    tmp_F[cur] += pred_F[prev] * self.T(prev, cur)
+            pred_F = tmp_F
+
+        return list(pred_F)
+

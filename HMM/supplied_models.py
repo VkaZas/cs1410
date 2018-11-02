@@ -2,6 +2,7 @@ from scipy.stats import norm
 import numpy as np
 
 from hmm import HMM
+# from ta_solution.part_1_solution import HMM
 
 
 class suppliedModel:
@@ -89,6 +90,7 @@ if __name__ == "__main__":
         model_instance.num_states,
     )
     time = 0
+    print(my_HMM.ask(0))
     for i in range(10):
         observation = input("Enter an observation: \n")
         my_HMM.tell(observation)

@@ -1,4 +1,4 @@
-# Implement part 2 here!
+import numpy as np
 
 
 class touchscreenHMM:
@@ -14,7 +14,40 @@ class touchscreenHMM:
         self.width = width
         self.height = height
         # Write your code here!
-        pass
+        self.ntime = 0
+        self.nstate = 20 * 20 * 9
+        self.dir = [[-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [0, 0]]
+        self.opposite = [4, 5, 6, 7, 0, 1, 2, 3, 8]
+        self.F = {}
+        for i in range(20):
+            for j in range(20):
+                for d in range(9):
+                    self.F[(i, j, d)] = 0.
+
+        self.alpha = 0.5
+
+    def is_adjacent(self, state1, state2):
+        return (state1[0] - state2[0]) ** 2 + (state1[1] - state2[1]) ** 2 <= 2
+
+    def try_bounce(self, state):
+        if not (0 <= state[0] < 20 and 0 <= state[1] < 20):
+            op_dir = self.opposite[state[2]]
+            nxt_state = self.forward(state, op_dir)
+            return nxt_state
+        else:
+            return state
+
+    def forward(self, state, d):
+        return state[0] + self.dir[d][0], state[1] + self.dir[d][1], d
+
+    def num_adjacent(self, state):
+        cnt = 0
+        for d in range(9):
+            nxt_state = self.forward(state, d)
+            nxt_state = self.try_bounce(nxt_state)
+            if 0 <= nxt_state[0] < 20 and 0 <= nxt_state[1] < 20:
+                cnt += 1
+        return cnt
 
     def sensor_model(self, observation, state):
         """
@@ -30,7 +63,24 @@ class touchscreenHMM:
         :return: The probability of observing that observation from that given state, a number
         """
         # Write your code here!
-        return None
+        last_state = self.forward(state, self.opposite[state[2]])
+        last_state = self.try_bounce(last_state)
+
+        [o_row], [o_col] = np.nonzero(observation)
+        prob = np.zeros((20, 20))
+        prob += (1 - self.alpha) / 400
+
+        for d in range(9):
+            nxt_state = self.forward(last_state, d)
+            nxt_state = self.try_bounce(nxt_state)
+            prob[nxt_state[0]][nxt_state[1]] += self.alpha / 18
+
+        for d in range(9):
+            nxt_state = self.forward(state, d)
+            nxt_state = self.try_bounce(nxt_state)
+            prob[nxt_state[0]][nxt_state[1]] += self.alpha / 18
+
+        return prob[o_row][o_col]
 
     def transition_model(self, old_state, new_state):
         """
@@ -45,8 +95,23 @@ class touchscreenHMM:
                             a touch location.
         :return: The probability of transitioning from the old state to the new state, a number
         """
-        # Write your code here!
-        return None
+        if not self.is_adjacent(old_state, new_state):
+            return 0
+
+        ideal_state = self.forward(old_state, old_state[2])
+        ideal_state = self.try_bounce(ideal_state)
+
+        for d in range(9):
+            cand_state = self.forward(old_state, d)
+            cand_state = self.try_bounce(cand_state)
+            if new_state == cand_state:
+                if new_state == ideal_state:
+                    return self.alpha
+                else:
+                    return (1 - self.alpha) / 8
+
+        return 0
+
 
     def filter_noisy_data(self, frame):
         """
@@ -59,8 +124,38 @@ class touchscreenHMM:
                     a touch location.
         :return: A 2D numpy array with the probabilities of the actual finger location.
         """
-        # Write your code here!
-        return frame
+        self.ntime += 1
+        print(self.ntime)
+        [o_row], [o_col] = np.nonzero(frame)
+
+        if self.ntime == 1:
+            for d in range(9):
+                self.F[(o_row, o_col, d)] = 1. / 9.
+        else:
+            tmp_F = {}
+
+            for row in range(20):
+                for col in range(20):
+                    for d in range(9):
+                        s = (row, col, d)
+                        for nd in range(9):
+                            ns = self.forward(s, nd)
+                            ns = self.try_bounce(ns)
+                            tmp_F[ns] = tmp_F.get(ns, 0) + self.sensor_model(frame, ns) * self.transition_model(s, ns) * self.F[s]
+
+            self.F = tmp_F
+
+        pred_frame = np.zeros((20, 20))
+        for (row, col, d), v in self.F.items():
+            pred_frame[row][col] += v
+        pred_frame_sum = np.sum(pred_frame)
+        for (row, col, d), _ in self.F.items():
+            self.F[(row, col, d)] /= pred_frame_sum
+        print(pred_frame_sum)
+        pred_frame = pred_frame / np.sum(pred_frame)
+
+
+        return pred_frame
 
     """ 
     THE BELOW FUNCTION IMPLEMENTATIONS ARE OPTIONAL AND WILL BE SCORED AS EXTRA CREDIT

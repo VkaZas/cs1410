@@ -25,12 +25,12 @@ frame_length (float) - specify the number of seconds each frame is shown for (lo
 """
 
 # Basic simulation run, same functionality as run_visual_simulation.py
-testing_manager.run_simulation(
-    width=20, height=20, frames=100, visualization=True, evaluate=False
-)
+# testing_manager.run_simulation(
+#     width=20, height=20, frames=100, visualization=True, evaluate=False
+# )
 
 # This will evaluate your solution and print your score without visualization
-testing_manager.run_simulation(frames=100, visualization=False, evaluate=True)
+# testing_manager.run_simulation(frames=100, visualization=False, evaluate=True)
 
 # This will visualize the simulation and display your distribution at the same time.
 # Then it will evaluate your solution and print your score.
@@ -40,7 +40,7 @@ testing_manager.run_simulation(
 
 # Will save a simulation to saved_sim.txt. Specify the file_name flag to customize the file name.
 # Be careful, running this with an existing file_name will overwrite the last saved run in that file.
-testing_manager.run_simulation(frames=100, save=True)
+# testing_manager.run_simulation(frames=100, save=True)
 
 """
 SimulationTestingManager's run_saved_simulation:
@@ -57,17 +57,17 @@ frame_length (float) - specify the number of seconds each frame is shown for (lo
 """
 
 # Save a run to simple_text.txt
-testing_manager.run_simulation(
-    width=20, height=20, frames=10, save=True, file_name="simple_text.txt"
-)
+# testing_manager.run_simulation(
+#     width=20, height=20, frames=10, save=True, file_name="simple_text.txt"
+# )
 
 # In order to visualize with the saved data in simple_text.txt:
-testing_manager.run_saved_simulation(file_name="simple_text.txt", frame_length=0.1)
+# testing_manager.run_saved_simulation(file_name="simple_text.txt", frame_length=0.1)
 
 # Test against the saved data without visualizing
-testing_manager.run_saved_simulation(
-    file_name="simple_text.txt",
-    visualization=False,
-    evaluate=True,
-    student_hmm=student_solution,
-)
+# testing_manager.run_saved_simulation(
+#     file_name="simple_text.txt",
+#     visualization=False,
+#     evaluate=True,
+#     student_hmm=student_solution,
+# )
