@@ -36,11 +36,19 @@ class StudentBot:
         """
         pass
 
+ARMOR_BASE = 0.2
+SPEEDUP_BASE = -0.5
+TRAP_BASE = 0.2
+BOMB_BASE = 0.2
+
+MAX_DISTANCE = 28
+
 
 class Survivor:
     def __init__(self):
         order = ["U", "D", "L", "R"]
         self.order = order
+        self.max_longest_path = -1
 
     def calc_board_longest_path(self, board, loc):
 
@@ -89,9 +97,47 @@ class Survivor:
 
         return powerups, adjopencells
 
-    def calc_board_loc_score(self, board, loc):
+    def calc_board_loc_score(self, board, loc, enemy_loc):
+        longest_path = self.calc_board_longest_path(board, loc)
+        if longest_path > self.max_longest_path:
+            self.max_longest_path = longest_path
+        powerups, adjopencells = self.calc_powerups_adjopencells(board, loc)
+        e_longest_path = self.calc_board_longest_path(board, enemy_loc)
+        if e_longest_path > self.max_longest_path:
+            self.max_longest_path = e_longest_path
+        e_powerups, e_adjopencells = self.calc_powerups_adjopencells(board, enemy_loc)
 
-        pass
+        def calc_openlvl(aoc):
+            return (aoc[0] * 2 + aoc[1]) / (8 * 2 + 12)
+
+        def calc_armor_score(dist):
+            return ARMOR_BASE * (1 - dist / MAX_DISTANCE)
+
+        def calc_speedup_score(dist, pathlen):
+            return SPEEDUP_BASE * (1 - dist / MAX_DISTANCE) ** 3
+
+        def calc_bomb_score(dist, openlvl):
+            return BOMB_BASE * (1 - dist / MAX_DISTANCE) * np.sqrt(1 - openlvl)
+
+        def calc_trap_score(dist, e_openlvl):
+            return TRAP_BASE * (1 - dist / MAX_DISTANCE) * np.sqrt(1 - e_openlvl)
+
+        total_score = longest_path / self.max_longest_path
+        for p in powerups:
+            if p[1] == '^':
+                total_score += calc_speedup_score(p[0], longest_path)
+            elif p[1] == '@':
+                total_score += calc_armor_score(p[0])
+            elif p[1] == '*':
+                total_score += calc_trap_score(p[0], calc_openlvl(e_adjopencells))
+            elif p[1] == '!':
+                total_score += calc_bomb_score(p[0], calc_openlvl(adjopencells))
+
+        # print("Path Score: " + str(longest_path / self.max_longest_path))
+        # print("Powerup Score: " + str(total_score - longest_path / self.max_longest_path))
+
+        return total_score
+
 
     def decide(self, asp):
         state = asp.get_start_state()
@@ -106,7 +152,7 @@ class Survivor:
         longest_act = "U"
         for act in possibilities:
             new_state = TronProblem.transition(asp, state, act)
-            tmp_longest_path = self.calc_board_longest_path(new_state.board, TronProblem.move(loc, act))
+            tmp_longest_path = self.calc_board_loc_score(new_state.board, TronProblem.move(loc, act), locs[1 - ptm])
             if tmp_longest_path > longest:
                 longest = tmp_longest_path
                 longest_act = act
@@ -114,6 +160,7 @@ class Survivor:
         return longest_act
 
     def cleanup(self):
+        self.max_longest_path = -1
         pass
 
 
