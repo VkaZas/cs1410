@@ -23,7 +23,7 @@ def run_game(asp, bots, visualizer=None, delay=0.2, max_wait=0.3, colored=True):
         visualizer(state, colored)
         time.sleep(delay)
 
-    cnt = 3
+    cnt = 1000
     while not (asp.is_terminal_state(state)):
         if cnt == 0:
             break
@@ -117,6 +117,7 @@ def main():
         winners = defaultdict(int)
         bots = support.determine_bot_functions(args.bots)
         for i in range(multi):
+            print("Round: " + str(i))
             game = TronProblem(args.map, 0)
             outcome = run_game(game, bots, visualizer, delay, wait, colored)
             winner = outcome.index(1)

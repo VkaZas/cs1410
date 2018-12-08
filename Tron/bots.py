@@ -100,11 +100,20 @@ class Survivor:
 
         ptm = state.ptm
         loc = locs[ptm]
-        print(self.calc_board_longest_path(board, loc))
 
-        return "U"
+        possibilities = list(TronProblem.get_safe_actions(board, loc))
+        longest = -1
+        longest_act = "U"
+        for act in possibilities:
+            new_state = TronProblem.transition(asp, state, act)
+            tmp_longest_path = self.calc_board_longest_path(new_state.board, TronProblem.move(loc, act))
+            if tmp_longest_path > longest:
+                longest = tmp_longest_path
+                longest_act = act
 
-    def cleanup(self, asp):
+        return longest_act
+
+    def cleanup(self):
         pass
 
 
