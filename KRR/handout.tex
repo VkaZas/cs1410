@@ -1,0 +1,379 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+\usepackage{dirtytalk}
+\usepackage{hyperref}
+\newcommand\tab[1][1cm]{\hspace*{#1}}
+\usepackage{color}
+
+
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=blue,      
+    urlcolor=blue,
+    pdftitle={Sharelatex Example},
+    bookmarks=true,
+    pdfpagemode=FullScreen,
+    }
+ 
+\urlstyle{same}
+
+\setlength{\parindent}{0cm}
+
+\title{CSCI1410 Fall 2018 ~\\
+Assignment 3: Knowledge Representation and Reasoning}
+\date{Code Due Monday, October 1 ~\\
+Writeup due Thursday, October 4}
+
+\begin{document}
+
+\maketitle
+
+% -------------------------------------------
+% ------------------INTRO--------------------
+% -------------------------------------------
+
+\section{Introduction}
+Someone has been taking George's Diet Dr. Pepper from his office and he needs to build an AI to help him find out who the thief is. He has decided to go back to college undercover and he's trying to decide which courses to take. However, George has mixed up all the courses and their prerequisites, so George doesn't know what to take. Help George figure out his courses so that he can find the thief!\\\\
+In this assignment, we will represent the rules of courses and prerequisites in a knowledge base, implemented in Prolog.~
+
+% -------------------------------------------
+% ----------------PROLOG---------------------
+% -------------------------------------------
+
+\section{Prolog}
+
+Prolog is a programming language that has its roots in first order logic. In this assignment, we will be using SWI-Prolog. \textbf{Below, you'll find all the information you need to complete the assignment}. Feel free to come back to this section after you've finished reading section 3!\\
+\subsection{Loading a Knowledge Base}
+To use Prolog, open up the terminal in a department machine and navigate to the directory where your knowledge base \verb|curriculum.pl| is located. Type:\\\\
+\verb|$ swipl|\\
+
+This should open up a prompt. Now, you can load your knowledge base as follows:\\\\
+\verb|?- [curriculum].|\\
+
+Or, if you're using Windows, type:\\\\
+\verb|?- make. |\\
+
+You should re-compile the knowledge base every time you make a change.\\
+
+In order to exit SWI-Prolog, you can do the following:\\
+
+\verb|?- halt. |\\
+
+\subsection{Variables}
+In Prolog, variables start with an uppercase letter and constants with a lowercase letter. For example, in \verb|singing(mark)|, \verb|mark| is a constant while in \verb|singing(X)|, \verb|X| is a variable.
+We can use \verb|is| to assign a value to a variable. For example,\\
+
+\verb|isTwo(X):-|\\
+\tab \verb|X is 2.|
+
+\subsection{Facts and Rules Syntax}
+Every fact, rule and query ends with a dot. We have provided you with a sample knowledge base, \verb|example.pl|. You can play around with it and pass it some queries. The sample knowledge base is as follows:\\
+
+\verb|singing(elon).|\\
+\verb|playingGuitar(mark).|\\
+\verb|playingGuitar(satya).|\\
+\verb|singing(jeff).|\\
+
+\verb|playingGuitar(elon):-|\\
+\tab \verb|happy(elon).|\\ 
+
+\verb|happy(mark):-|\\
+\tab \verb|singing(mark),|\\
+\tab \verb|playingGuitar(mark).|\\
+
+\verb|happy(satya):-|\\
+\tab \verb|singing(satya);|\\
+\tab \verb|playingGuitar(satya).|\\
+
+\verb|sad(satya):-|\\
+\tab \verb|not(playingGuitar(satya)).|\\
+
+\verb|grumpy(jeff):-|\\
+\tab \verb|singing(jeff)->|\\
+\tab \tab \verb|false|\\
+\tab \verb|;|\\
+\tab \tab \verb|true.|
+
+
+\subsubsection{If}
+In the above KB, the first four lines are facts and the rest are rules. Consider the rule on the fifth line:\\
+
+\verb|playingGuitar(elon):- happy(elon).|\\
+
+The above line can be read as $elon$ plays the guitar \textbf{if} $elon$ is happy. The \verb|:-| operator is used to denote "if" or "is implied by".
+
+\subsubsection{And}
+Consider the next rule:\\
+
+\verb|happy(mark):-|\\
+\tab \verb|singing(mark),|\\
+\tab \verb|playingGuitar(mark).|\\
+
+The above can be read as $mark$ is happy if $mark$ is singing \textbf{and} playing the guitar. Thus, the \verb|,| in Prolog is used to denote \say{and}.
+
+\subsubsection{Or}
+Consider the next rule:\\
+
+\verb|happy(satya):-|\\
+\tab \verb|singing(satya);|\\
+\tab \verb|playingGuitar(satya).|\\
+
+The above can be read as $satya$ is happy if $satya$ is singing \textbf{or} playing the guitar. Thus, the \verb|;| in Prolog is used to denote \say{or}. 
+
+\subsubsection{Not}
+Consider the next rule:\\
+
+\verb| sad(satya):-|\\
+\tab \verb|not(playingGuitar(satya)).|\\
+
+The above can be read as $satya$ is sad if $satya$ is \textbf{not} playing the Guitar. Thus, \verb|not(...)| is used to denote negation.
+
+\subsubsection{If-then-else}
+Consider the last rule:\\
+\verb|grumpy(jeff):-|\\
+\tab \verb|singing(jeff)->|\\
+\tab \tab \verb|false|\\
+\tab \verb|;|\\
+\tab \tab \verb|true.|\\
+
+This can be read as, \textit{jeff} is grumpy unless he's singing. The expression before the \verb|->| is the expression that is checked for truth; if it's true, the next line is executed. If it's false, the line after the \verb|;| is executed. 
+
+\subsection{Operators}
+Since Prolog is built on true and false statements, you might find Boolean expressions useful! Prolog supports comparison operators, as illustrated in the table below:
+
+\begin{center}
+\begin{tabular}
+{ | p{4cm} | p{7cm} | } 
+\hline
+Syntax & Explanation\\
+\hline
+\verb|<Term1> @> <Term2>| & True if \verb|Term1| is after \verb|Term2| in the standard order of terms. \\
+\hline
+\verb|<Term1> @<  <Term2>| & True if \verb|Term1| is before \verb|Term2| in the standard order of terms. \\
+\hline
+\verb|<Term1> @=>  <Term2>| & True if \verb|Term1| is after \verb|Term2| in the standard order of terms, or both terms are equal. \\
+\hline
+\verb|<Term1> @=<  <Term2>| & True if \verb|Term1| is before \verb|Term2| in the standard order of terms, or both terms are equal. \\
+\hline
+\verb|<Term1> == <Term2>| & True if both terms are equal.\\
+\hline
+\verb|<Term1> \== <Term2>| & True if terms are not equal. \\
+\hline
+\end{tabular}
+\end{center}
+
+
+\subsection{Commenting}
+To add comments in Prolog, you can use \verb|/* */| or $\%$.
+
+
+\subsection{Querying the Knowledge Base}
+Once you've loaded the knowledge base, you can query it. Assume that the knowledge base contains two facts:\\
+
+\verb|singing(elon).|\\
+\verb|singing(jeff)|.\\
+
+Now, we can ask the knowledge base if a fact is true or false, as follows:\\
+
+\verb|?- singing(elon).|\\
+\verb|?- true.|\\
+
+In this example, we've asked the knowledge base if a fact we've given it is true. We can also query for information that the knowledge base contains, as follows:\\
+
+\verb|?- singing(X)|.\\
+
+Prolog then returns:\\
+\verb|?- X = elon|\\
+
+You'll notice that it's only returned one answer, while we know that there are more! To continue, simply type \verb|;| after the first answer rather than pressing \verb|enter|. Prolog will then return:\\
+
+\verb|?- X = jeff|\\
+
+ If you have any further questions about syntax, you can post on Piazza or come to TA hours!\\
+
+\textbf{Note}: Every fact, rule and query in SWI-Prolog must end with a dot. If you forget the dot, you will run into errors!
+% -------------------------------------------
+% ----------------YOUR TASK------------------
+% -------------------------------------------
+\section{Your Task}
+
+% -------------------------------------------
+% -------------------KB----------------------
+% -------------------------------------------
+
+\subsection{Knowledge Base}
+A knowledge base contains \textit{facts} and \textit{rules}. Your first task is to create a knowledge base describing courses and their prerequisites. The following is a graph of courses and prerequisites in the Computer Science department. Note that the graph does \textbf{not} strictly follow the Brown CS curriculum, meaning the rules of the graph are not necessarily the same as the Brown CS department's rules.\\\\
+\begin{tikzpicture}
+\tikzset{vertex/.style = {shape=circle,draw,minimum size=0.8em}}
+\tikzset{edge/.style = {->,> = latex'}}
+\tikzset{dash/.style = {baseline=-0.25ex,-latex, dashed}}
+
+% vertices
+\node[vertex] (a) at  (1,2) {CS15};
+\node[vertex] (b) at  (4,2) {CS22};
+\node[vertex] (c) at  (7,2) {CS17};
+\node[vertex] (d) at  (1,0) {CS16};
+\node[vertex] (e) at  (4,0) {CS141};
+\node[vertex] (f) at  (7,0) {CS18};
+\node[vertex] (g) at  (1,-3) {CS33};
+\node[vertex] (h) at  (7,-3) {CS32};
+\node[vertex] (i) at  (1,-5) {CS166};
+\node[vertex] (j) at  (7,-5) {CS126};
+
+%edges
+\draw[edge] (a) to (d);
+\draw[edge] (b) to (e);
+\draw[edge] (c) to (f);
+\draw[dash] (d) to (e);
+\draw[dash] (f) to (e);
+\draw[dash] (d) to (g);
+\draw[dash] (f) to (g);
+\draw[dash] (d) to (h);
+\draw[dash] (f) to (h);
+\draw[edge] (g) to (i);
+\draw[edge] (h) to (j);
+\draw[edge] (b) to (j);
+\end{tikzpicture}\\\\\\
+In the graph, a solid arrow from $A$ to $B$ means that $A$ is a prerequisite of $B$. Dotted arrows mean that ONE of these courses is a prerequisite of the course. For example, CS15 is a prerequisite of CS16. However, to take CS141, you have to take CS22 and \textit{either} CS16 or CS18. Similarly, to take CS32, you have to take \textit{either} CS16 or CS18.\\
+
+You also have the following rules about courses:
+
+\begin{enumerate}
+    \item CS15, CS17, CS33, CS141 and CS126 are only offered in the fall.
+    \item CS16, CS18, CS22, CS32, CS166 are only offered in the spring.
+    \item A course is intro if it's offered in the fall and has no prerequisites, or if it's offered in the spring and has a prerequisite that has no prerequisites. 
+    \item A course is intermediate if it is not an intro, but its prereqs are all intro classes.
+    \item A course is upper level if its prereqs are an intro \textbf{and} CS22, or if its prereqs are not intros. 
+    \item Courses may only be of one level; i.e. intro courses may not also be intermediate courses, etc.
+    \item Course(s) can be neither a lower level nor an upper level course.
+\end{enumerate}
+
+\textbf{Please do not hard code these rules for each course.} We will be adding new courses while testing and your knowledge base rules should work on them. Adding facts don't  count as hard coding  because facts need to reference specific information to be a fact rather than a rule. Hardcoding would be something like: intro(Course) :- Course == cs01;; Course == cs00 . (where the requirements to be intros haven't been taken into account at all).\\
+
+While constructing your knowledge base, you \textbf{must} use the following predicates. We have specified which predicates you must write rules for, and which you must use as facts. \\
+
+\verb|fall(Course)|\\
+\textit{Use:} Fact\\
+\textit{English version:} True when \verb|Course| is offered in the fall.\\
+
+\verb|spring(Course)|\\
+\textit{Use:} Fact\\
+\textit{English version:} True when \verb|Course| is offered in the spring.\\
+
+\verb|has_prereqs(Course, Prerequisite)|\\
+\textit{Use:} Fact\\
+\textit{English version:} True when \verb|Prerequisite| must be taken to be eligible to take \verb|Course|, \textbf{or} if \verb|Prerequisite| is one of multiple courses that can be taken to gain eligibility to take \verb|Course|. \\
+
+\verb|no_prereqs(Course)|\\
+\textit{Use:} Fact\\
+\textit{English version:} True when \verb|Course| can be taken without taking any other courses previously. \\
+
+\verb|intro(Course)|\\
+\textit{Use:} Rule\\
+\textit{English version:} True when \verb|Course| is offered in the fall and has no prerequisites, or if it's offered in the spring and its prerequisite has no prerequisites. \\
+
+\verb|intermediate(Course)|\\
+\textit{Use:} Rule\\
+\textit{English version:} True when \verb|Course| is not an intro, but its prereqs are intros. \\
+
+\verb|upper_level(Course)|\\
+\textit{Use:} Rule\\
+\textit{English version:}  True if the prereqs of \verb|Course| are not intros, or if its prereqs are CS22 and intros.\\
+
+The courses are represented as \verb|cs15|, \verb|cs16|, \verb|cs17|, \verb|cs18|, \verb|cs22|, \verb|cs32|, \verb|cs33|, \verb|cs141|, \verb|cs166| and \verb|cs126|. You can use any additional predicates, but you must use the ones specified above. We will be using these for testing purposes.
+You are given a stencil file \verb|curriculum.pl| to fill in with the above rules and predicates.
+
+% -------------------------------------------
+% -----------------QUERIES-------------------
+% -------------------------------------------
+
+\subsection{Queries}
+
+Now that you've implemented the basic knowledge base, Mark has a specific set of questions that he wants the knowledge base to answer. In plain words, we have given you the queries that we will be testing you on. Your task is to add the appropriate facts to \verb|curriculum.pl| so that your knowledge base answers each query correctly. \textbf{Although we won't be testing you on this explicitly, you should also figure out how to express each query in Prolog so that you can test your implementations.}\\
+
+The first thing you should do is add one more rule to your knowledge base:\\
+
+\verb|can_take(Student, Course)|\\
+\textit{Use:} Rule\\
+\textit{English version}: True when \verb|Student| is eligible to take \verb|Course| (i.e. they have taken the necessary prerequisites.)\\ 
+
+You must implement the \verb|can_take| function to check a student’s eligibility to take classes. We will be running our autograder using your version of \verb|can_take|, so make sure it's correct! You will use the following fact to write your \verb|can_take| rule: \\
+
+\verb|has_taken(Student, Course)|\\
+\textit{Use:} Fact\\
+\textit{English version}: True when \verb|Student| has taken \verb|Course|. \\
+
+ You now should now translate the following statements into Prolog by adding facts to your knowledge base using the \verb|has_taken| predicate. Please use the indicated name in \verb|this font| for each of the scenarios, or else our autograder won't work!
+
+\begin{enumerate}
+    \item \verb|mark| has only taken one intermediate class (and its prerequisites) and cannot take any more classes than he could without it.
+    \item \verb|elon| can take \verb|cs32| and \verb|cs18|. You should assume he cannot repeat classes.
+    \item \verb|sheryl| Sandberg is eligible to take all upper level classes. 
+    \item The only class \verb|jeff| Bezos can take that he hasn't already taken is CS32.\\
+\end{enumerate}
+
+\subsection{Prolog Output Clarifications}
+\begin{enumerate}
+    \item When making a query, it is okay if courses show up multiple times.
+    \item If a query returns true (as desired), but you continue it with a semicolon, it may return false. This is because Prolog returns false when the query cannot search for more possible solutions. As long as there is one true, this is okay.
+\end{enumerate}
+
+% -------------------------------------------
+% --------------C QUESTIONS------------------
+% -------------------------------------------
+
+\section{Written Questions}
+Answer these in a numbered, typed document.
+\begin{enumerate}
+    \item Given that the following statements are true, derive the truth value of $A$.\\\\
+        $\neg D \land E$\\
+        $C \lor D$\\
+        $B \implies \neg C$\\
+        $A \lor B$
+    \item \say{If it rains and you don't open your umbrella, you will get wet}. Translate this statement to propositional logic and write its truth table.
+    \item Write the following statements in first order logic. You are given the functions: \verb|AuthorOf(A, B), IsBook(A)|, and \verb|Equals(A, B)|.
+        \begin{enumerate}
+            \item All books have an author.
+            \item Sheryl Sandberg wrote the book \textit{Lean In}.
+            \item At least one book has exactly three authors.
+            \item No books were written by Mark.
+        \end{enumerate}
+    \item Discuss the differences between Propositional Logic and First Order Logic.
+\end{enumerate} 
+
+% -------------------------------------------
+% --------------GRADING----------------------
+% -------------------------------------------
+
+\section{Grading}
+For part 3.1, we will be testing your KB by adding our own courses and ensuring that your rules return what we expect.
+This is why you cannot hardcode the rules we tell you to implement - i.e. you cannot say the Prolog version of, ``A course is an intro if it is courseA or courseB or courseC" because when we add courseD to your KB, it should also tell us it's an intro.\\
+
+In other words, you only need to make your KB work for the scenarios we have illustrated in the graph.
+For example, to test that you haven't hardcoded things, we might create a new intro sequence that is functionally the same thing as an intro pair that's in the graph, and ensure that your KB tells us those new courses are intros.
+But we aren't going to test some edge case that isn't logically represented by the graph and rules we gave you.\\
+
+For part 3.2, the purpose is to think about what the Prolog query will be translated from English, and then add the appropriate facts to your KB.
+Note that this means we are not formally testing your can\_take rule.
+We expect your can\_take rule to be functional enough so that our queries work with it.
+You should not interpret this as a license to hard code the answers to the queries in your can\_take function, as it probably won't work.
+But also, if you feel that there's no other way to represent a scenario by thinking extensibly and sticking to what's in the handout, then you may want to consider what the special cases are and adjust your can\_take function as necessary.\\
+
+You can check \verb|rubric.txt| in your stencil folder for more details about grading.
+
+% -------------------------------------------
+% --------------HANDIN-----------------------
+% -------------------------------------------
+
+\section{Handin Instructions}
+
+You must turn in \verb|curriculum.pl| via the handin script. This is the only file we will be testing, so answer all of the Prolog questions in this file.\\
+
+As usual, you must submit your answers to the comprehension questions via Gradescope.
+
+\end{document}

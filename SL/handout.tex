@@ -1,0 +1,165 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{bm}
+
+\setlength{\parindent}{0cm}
+
+\title{CSCI1410 Fall 2018 ~\\
+Assignment 6: Supervised Learning}
+\date{Code Due Monday, November 19 ~\\
+Writeup Due Thursday, November 26}
+
+
+\begin{document}
+
+   \maketitle
+
+\section{Introduction}
+
+George has gathered a lot of information about who has been stealing his Dr Pepper. He needs your help with classifying this information. ~\\
+
+In this assignment, you will implement k-nearest-neighbors (KNN) and parts of linear regression in abstract.
+Then, you will use linear regression to make predictions on a real dataset.
+
+\section{Code Walkthrough}
+You are given 5 code files.
+Below is a high-level overview of each.
+View the docstrings and comments of each file for more detailed information.
+
+\begin{itemize}
+\item \verb|supervisedlearner.py|
+contains \verb|SupervisedLearner|, the abstract superclass of the other classes that you will implement for this assignment, \verb|KNNClassifier| and \verb|RegressionLearner|.
+
+In the \verb|SupervisedLearner| class, you will implement \verb|compute_features|.
+
+\item \verb|knn.py|
+contains the \verb|KNNClassifier| class, for which you will implement \verb|train|, \verb|predict|, and \verb|evaluate|.
+
+\item \verb|regression.py|
+contains the \verb|RegressionLearner| class, for which you will implement \verb|predict| and \verb|evaluate|.
+
+\item \verb|bicycleregression.py|
+contains support code that will be useful when you apply linear regression to a real dataset.
+In this file, you will fill in the stencil code for \verb|produce_regression_model|.
+
+\item \verb|perceptron.py| contains the \verb|Perceptron| class, for which you will implement \verb|train|, \verb|predict| and \verb|evaluate|.
+\end{itemize}
+
+\section{Part 1: Generic Supervised Learning}
+
+\subsection{Compute Features}
+First, you should implement \verb|compute_features|, which converts a data point into a feature vector.
+This method will be useful for both the KNN and regression portions of the assignment and, more generally, in any machine learning approach that involves extracting features from data using hand-picked feature functions.
+You can find \verb|compute_features| and its specifications in \verb|supervisedlearning.py|. We advise you to unit test your implementation of the \verb|compute_features| function, and ensure that its runtime is less than a minute.
+
+\subsection{K Nearest Neighbors (KNN)}
+
+In \verb|knn.py|, you will write code that can be used to apply a KNN approach to any classification problem. 
+You should implement \verb|train|, \verb|predict|, and \verb|evaluate|.
+The docstrings for these methods give I/O specifications and some instructions on how to implement them.
+You may add any other code or instance variables to the class as you see fit. ~\\
+We advise you to unit test your implementation of \verb|train|, \verb|predict|, and \verb|evaluate| functions, and ensure that the runtime for each of these functions is less than a minute.\\
+
+\textbf{Note}: In the stencil code, we use the phrase \textbf{anchor point} to refer to one of the points that is stored in a KNN approach.
+A KNN classifier classifies a data point $x$ by taking a plurality vote among the $K$ anchor points that are closest in feature space to $x$.
+
+\subsection{Linear Regression}
+
+In \verb|regression.py|, you will write generic code that can be used for any regression problem.
+We have already written \verb|train| for you.
+It uses the matrix-based approach that you learned in lecture.
+It is up to you to write \verb|predict| and \verb|evaluate|.\\
+We advise you to unit test your implementation of \verb|predict|, and \verb|evaluate| functions, and ensure that the runtime for each of these functions is less than a minute.
+
+\subsection{Perceptron}
+In \verb|perceptron.py| you will write code to \verb|train|, \verb|predict| and \verb|evaluate| a perceptron. In general, a perceptron is an algorithm for learning a binary classifier, using the following function:
+
+\[ f(x) = \begin{cases} 
+      1 & \text{ if } \bm{w.x + b > 0} \\
+      0 & \text{otherwise}
+   \end{cases}
+\]
+where \textbf{x} is the datapoint, \textbf{w} is the set of weights that the perceptron learns and \textbf{b} is a bias term.You can either use a bias term in the training equation or could append a constant bias term in the dataset. The dataset that we will use to test your code has a bias term included in it, so feel free to consider $\bm{b = 0}$.
+
+
+\subsection{Testing Your Code}
+You will find that it is nontrivial to verify that your code is correct.
+We recommend that you test your code by creating small, phony datasets and making sure that your code behaves as you expect it to on them. ~\\
+
+\section{Part 2: Regression on Bicycle Dataset}
+\subsection{Problem}
+Now that you have written a basic library for performing linear regression, it's time to put it to use!
+You are given a portion of a real dataset about bike rentals.
+Each data point contains the following information, in order:
+
+\begin{enumerate}
+\item \textbf{hour}: the hour of a day in military time, divided by 24.
+\item \textbf{workingday}: this will be 0 on a weekend or holiday, 1 on a working day.
+\item \textbf{atemp}: the normalized feeling temperature in Celsius
+\end{enumerate}
+
+Each data point is labeled with the number of bikes sold at that hour.
+You will create a regression model that predicts the number of bikes sold, given those three factors. ~\\
+
+You are given the dataset in the form of a saved 2D numpy array, \verb|student_data.npy|.
+Each row of this array contains a single data point, followed by its correct label (the number of bikes sold in that hour) in the last column.
+In \verb|bicycleregression.py|, we have loaded the data array for you and split it up into datapoints and associated labels. ~\\
+
+Your goal is to fill in the \verb|produce_regression_model| function in \verb|bicycleregression.py| such that it returns a trained \verb|RegressionLearner| that predicts as accurately as possible on novel datapoints.
+
+\subsection{Support Code}
+You will find \verb|create_monomial_feature_func| and \verb|all_monomials_with_maximum_degrees| helpful for producing monomial feature functions.
+You are encouraged to use them.
+View their documentation for details.
+
+\subsection{Grading}
+We have given you a fraction of the original dataset and withheld the rest.
+Your grade will be a function of the average squared error you achieve on the withheld portion of the dataset.
+Perfect scores will be awarded to regression models that achieve an average squared error of less than 11,000.
+Partial credit will be given for higher error rates, on a curve.
+In addition, submissions with error rates below 16,000 are guaranteed at least 25 of the 40 points. 
+
+\subsection{Advice}
+Although in principle you may use any feature functions you like for this assignment, and it may be fun to experiment, you can earn full points using only monomial feature functions.~\\
+
+The main challenge in this assignment is to choose features that strike the right balance between overfitting and underfitting to the given subset of the data, such that your model generalizes well to the withheld subset of the data.
+The more features you include, the more likely you are to overfit, and vice versa. ~\\
+
+A good way to prevent overfitting is to use regularization during training.
+You \textbf{do not} need to use regularization to succeed on this assignment.
+
+\section{Written Questions}
+Please turn in the written portion via Gradescope with each section clearly distinguished.
+\subsection{Question 1}
+Consider a dataset that has two binary features. The label belonging to each datapoint is a boolean function of the binary features. You should provide us with \textbf{valid sets of weights and bias terms} or \textbf{justify the failure} in using a perceptron for perfectly classifying the datapoints when:
+\begin{enumerate}
+    \item The boolean function is AND.
+    \item The boolean function is OR.
+    \item The boolean function is XOR.
+\end{enumerate}
+
+
+\subsection{Question 2}
+Consider a binary classification problem in the 2D input space having X and Y coordinates. The plane consists of a circle of radius 1, in such a way that all points inside the circle are labelled 'A' and all points that lie outside are labelled 'B'. Answer the following questions based on the given information:
+\begin{enumerate}
+    \item Are the classes linearly separable? Justify your answer.
+    \item Consider that along with the coordinates, their squares and product are also provided as features. Does addition of these features make the classes linearly separable?
+    \item Consider a scenario where you are allowed to choose a single feature in order to classify the inputs. Which feature would make the classes linearly separable?
+    \\
+\textbf{Hint}: Consider scaling the problem from two dimentions to three dimensions for these questions)
+\end{enumerate}
+
+\section{Restrictions}
+You may not import any packages besides numpy in the version of your code that you hand in.
+
+\section{Install and Handin}
+\begin{itemize}
+    \item \textbf{Install}: \verb|cs1410_install SL|
+    
+    \item \textbf{Handin}:
+    \verb|cs1410_handin SL|
+\end{itemize}
+
+\end{document}
+
