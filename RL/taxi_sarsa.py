@@ -32,8 +32,18 @@ class SARSA(Tabular_SARSA.Tabular_SARSA):
             episodic_reward = 0
             while True:
                 next_state, reward, done, info = env.step(action)  # take a random
+                next_action = self.LearningPolicy(next_state)
+                td_err = reward + self.gamma * self.qtable[next_state][next_action] - self.qtable[state, action]
+                self.qtable[state][action] += self.alpha * td_err
+                action = next_action
+                state = next_state
+                episodic_reward += reward
+                if done:
+                    break
 
-                "*** Fill in the rest of the algorithm!! ***"
+            rewards_each_learning_episode.append(episodic_reward)
+
+
 
         np.save("qvalues_taxi_sarsa", self.qtable)
         np.save("policy_taxi_sarsa", self.policy)

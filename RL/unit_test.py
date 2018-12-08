@@ -18,50 +18,50 @@ class IOTest(unittest.TestCase):
 
 	"""
 
-    def test_sarsa(self):
-        # policy, qtable, reward = SARSA.learn_policy(env, gamma, learning_rate, epsilon, lambda_val, num_eps)
-        env = gym.make("Taxi-v2")
-        env.reset()
-        sarsaLearner = SARSA()
-        policy, qtable, reward = sarsaLearner.learn_policy(
-            env, 0.95, 0.2, 0.1, 0.1, 1000
-        )
-        self.assertEqual(
-            np.shape(policy),
-            (500, 1),
-            "The dimensions of the updated policy are incorrect",
-        )
-        self.assertEqual(
-            np.shape(qtable), (500, 6), "The dimensions of qtable are incorrect"
-        )
-        self.assertEqual(
-            len(reward),
-            1000,
-            "The dimensions of rewards_each_learning_episode are incorrect",
-        )
-
-    def test_sarsa_lambda(self):
-
-        env = gym.make("Taxi-v2")
-        env.reset()
-        # policy, qtable, reward = SARSA.learn_policy(env, gamma, learning_rate, epsilon, lambda_val, num_eps)
-        sarsaLearner = SARSALambda()
-        policy, qtable, reward = sarsaLearner.learn_policy(
-            env, 0.95, 0.2, 0.1, 0.1, 1000
-        )
-        self.assertEqual(
-            np.shape(policy),
-            (500, 1),
-            "The dimensions of the updated policy are incorrect",
-        )
-        self.assertEqual(
-            np.shape(qtable), (500, 6), "The dimensions of qtable are incorrect"
-        )
-        self.assertEqual(
-            len(reward),
-            1000,
-            "The dimensions of rewards_each_learning_episode are incorrect",
-        )
+    # def test_sarsa(self):
+    #     # policy, qtable, reward = SARSA.learn_policy(env, gamma, learning_rate, epsilon, lambda_val, num_eps)
+    #     env = gym.make("Taxi-v2")
+    #     env.reset()
+    #     sarsaLearner = SARSA()
+    #     policy, qtable, reward = sarsaLearner.learn_policy(
+    #         env, 0.95, 0.2, 0.1, 0.1, 1000
+    #     )
+    #     self.assertEqual(
+    #         np.shape(policy),
+    #         (500, 1),
+    #         "The dimensions of the updated policy are incorrect",
+    #     )
+    #     self.assertEqual(
+    #         np.shape(qtable), (500, 6), "The dimensions of qtable are incorrect"
+    #     )
+    #     self.assertEqual(
+    #         len(reward),
+    #         1000,
+    #         "The dimensions of rewards_each_learning_episode are incorrect",
+    #     )
+    #
+    # def test_sarsa_lambda(self):
+    #
+    #     env = gym.make("Taxi-v2")
+    #     env.reset()
+    #     # policy, qtable, reward = SARSA.learn_policy(env, gamma, learning_rate, epsilon, lambda_val, num_eps)
+    #     sarsaLearner = SARSALambda()
+    #     policy, qtable, reward = sarsaLearner.learn_policy(
+    #         env, 0.95, 0.2, 0.1, 0.1, 1000
+    #     )
+    #     self.assertEqual(
+    #         np.shape(policy),
+    #         (500, 1),
+    #         "The dimensions of the updated policy are incorrect",
+    #     )
+    #     self.assertEqual(
+    #         np.shape(qtable), (500, 6), "The dimensions of qtable are incorrect"
+    #     )
+    #     self.assertEqual(
+    #         len(reward),
+    #         1000,
+    #         "The dimensions of rewards_each_learning_episode are incorrect",
+    #     )
 
     def test_mountain_car(self):
         create_multipliers()

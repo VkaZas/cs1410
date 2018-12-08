@@ -28,14 +28,30 @@ class SARSA(Tabular_SARSA.Tabular_SARSA):
         self.lambda_value = lambda_value
         rewards_each_learning_episode = []
         for i in range(num_episodes):
+            print(i)
             state = env.reset()
             action = self.LearningPolicy(state)
             episodic_reward = 0
             self.etable = np.zeros((self.num_states, self.num_actions))
-            while True:
-                next_state, reward, done, info = env.step(action)
 
-                "*** Fill in the rest of the algorithm!! ***"
+            while True:
+                next_state, reward, done, info = env.step(action)  # take a random
+                next_action = self.LearningPolicy(next_state)
+                td_err = reward + self.gamma * self.qtable[next_state][next_action] - self.qtable[state, action]
+                self.qtable[state][action] += self.alpha * td_err
+
+                for s in range(self.num_states):
+                    for a in range(self.num_actions):
+                        self.qtable[s][a] += self.alpha * td_err * self.etable[s][a]
+                        self.etable[s][a] = self.gamma * self.lambda_value * self.etable[s][a]
+
+                action = next_action
+                state = next_state
+                episodic_reward += reward
+                if done:
+                    break
+
+            rewards_each_learning_episode.append(episodic_reward)
 
         np.save("qvalues_taxi_sarsa_lambda", self.qtable)
         np.save("policy_taxi_sarsa_lambda", self.policy)
@@ -51,7 +67,7 @@ if __name__ == "__main__":
     env.reset()
     sarsaLearner = SARSA()
     policySarsa, QValues, episodeRewards = sarsaLearner.learn_policy(
-        env, 0.95, 0.2, 0.1, 0.8, 10000
+        env, 0.95, 0.2, 0.1, 0.8, 1500
     )
     plt.plot(episodeRewards)
     plt.ylabel("rewards per episode")
@@ -67,3 +83,5 @@ if __name__ == "__main__":
         state = next_state
         if done:
             break
+
+    print(sarsaLearner.policy)

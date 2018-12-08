@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import sys
 
 # Initializations
-num_episodes = 3000  # 1000
-num_timesteps = 800  # 200
+num_episodes = 10000  # 1000
+num_timesteps = 1000  # 200
 gym.envs.register(
     id="MountainCarLongerEpisodeLength-v0",
     entry_point="gym.envs.classic_control:MountainCarEnv",
@@ -59,7 +59,8 @@ def normalize_state(s):
 # Returns an ndarray basis functions
 def phi(state):
     "*** Fill in code to return the computed basis functions! ***"
-    return 0
+    global multipliers
+    return np.cos(np.pi * np.matmul(multipliers, state))
 
 
 # TODO
@@ -67,6 +68,11 @@ def phi(state):
 def create_multipliers():
     global multipliers
     "*** Fill in the code to generate the coefficients for fourier " "basis functions and assign it to the variable multipliers***"
+    for i in range(order + 1):
+        for j in range(order + 1):
+            idx = i * (order + 1) + j
+            multipliers[idx][0] = i
+            multipliers[idx][1] = j
 
 
 # Returns the value of an action at some state
@@ -120,12 +126,22 @@ def SARSA_Learning():
         action = learning_policy(state)
         rewards = np.array([0])
 
+
         # Each episode
         for t in range(num_timesteps):
-            env.render()
+            # if ep > 100: env.render()
             next_state, reward, done, info = env.step(action)
+            next_action = learning_policy(next_state)
             rewards = np.append(rewards, reward)
             "*** Fill in the rest of the algorithm!***"
+            td_err = reward + gamma * action_value(next_state, next_action) - action_value(state, action)
+            e[:, action] = e[:, action] * Lambda * gamma + features
+            weights[:, action] += alpha * td_err * e[:, action]
+
+            state = next_state
+            action = next_action
+            features = phi(normalize_state(state))
+
             if done:
                 break
 
