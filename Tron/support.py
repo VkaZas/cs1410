@@ -25,6 +25,8 @@ def determine_bot_functions(bot_names):
             bot_list.append(ta_bots.TABot2())
         elif name == "survivor":
             bot_list.append(bots.Survivor())
+        elif name == "mocker":
+            bot_list.append(bots.Mocker())
         else:
             raise ValueError(
                 """Bot name %s is not supported. Value names include "student",

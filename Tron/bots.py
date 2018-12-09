@@ -36,40 +36,59 @@ class StudentBot:
         """
         pass
 
-ARMOR_BASE = 0.2
-SPEEDUP_BASE = -0.5
-TRAP_BASE = 0.2
-BOMB_BASE = 0.2
+ARMOR_BASE = 0.9
+SPEEDUP_BASE = -0.9
+TRAP_BASE = 0.9
+BOMB_BASE = 0.9
 
 MAX_DISTANCE = 28
 
 
 class Survivor:
     def __init__(self):
-        order = ["U", "D", "L", "R"]
+        order = ["U", "R", "D", "L"]
         self.order = order
         self.max_longest_path = -1
 
+    def calc_is_met(self, loc, e_loc):
+        if np.abs(loc[0] - e_loc[0]) <= 1 and np.abs(loc[1] - e_loc[1]) <= 1:
+            return True
+        return False
+
     def calc_board_longest_path(self, board, loc):
 
-        def dfs(pos, step, vis):
+        def dfs(pos, step, vis, order):
             res = -1
             vis[pos] = step
             if step > res:
                 res = step
 
-                for dir in self.order:
+                for dir in order:
                     new_pos = TronProblem.move(pos, dir)
                     mark = board[new_pos[0]][new_pos[1]]
                     if mark != CellType.WALL and mark != CellType.BARRIER \
                             and mark != '1' and mark != '2' and vis.get(new_pos) is None:
-                        tmp_res = dfs(new_pos, step + 1, vis)
+                        tmp_res = dfs(new_pos, step + 1, vis, order)
                         if tmp_res > res:
                             res = tmp_res
 
             return res
 
-        return dfs(loc, 0, {})
+        max_res = -1
+        order = ["U", "D", "L", "R"]
+        for i in range(4):
+            tmp = dfs(loc, 0, {}, order)
+            if tmp > max_res:
+                max_res = tmp
+            tmp = dfs(loc, 0, {}, order[::-1])
+            if tmp > max_res:
+                max_res = tmp
+            order.append(order[0])
+            order = order[1:]
+
+        # max_res = dfs(loc, 0, {}, order)
+
+        return max_res
 
     def calc_powerups_adjopencells(self, board, loc):
         q = queue.Queue()
@@ -138,7 +157,6 @@ class Survivor:
 
         return total_score
 
-
     def decide(self, asp):
         state = asp.get_start_state()
         locs = state.player_locs
@@ -153,6 +171,7 @@ class Survivor:
         for act in possibilities:
             new_state = TronProblem.transition(asp, state, act)
             tmp_longest_path = self.calc_board_loc_score(new_state.board, TronProblem.move(loc, act), locs[1 - ptm])
+            # tmp_longest_path = self.calc_board_longest_path(new_state.board, TronProblem.move(loc, act))
             if tmp_longest_path > longest:
                 longest = tmp_longest_path
                 longest_act = act
@@ -162,6 +181,74 @@ class Survivor:
     def cleanup(self):
         self.max_longest_path = -1
         pass
+
+
+class Mocker(Survivor):
+    def __init__(self):
+        super().__init__()
+        self.e_last_loc = None
+        self.met = False
+
+    def decide(self, asp):
+        state = asp.get_start_state()
+        locs = state.player_locs
+        board = state.board
+        ptm = state.ptm
+        loc = locs[ptm]
+        possibilities = list(TronProblem.get_safe_actions(board, loc))
+
+        # if np.random.random() < 0.2 and len(possibilities) > 0:
+        #     # print("RANDOM!!!!!!!!!!!!!!!!!!")
+        #     random.choice(possibilities)
+
+        nxt_dir = "U"
+        e_now_loc = locs[1 - ptm]
+        if self.e_last_loc is not None:
+            if e_now_loc[0] == self.e_last_loc[0] - 1:
+                nxt_dir = "D"
+            elif e_now_loc[0] == self.e_last_loc[0] + 1:
+                nxt_dir = "U"
+            elif e_now_loc[1] == self.e_last_loc[1] - 1:
+                nxt_dir = "R"
+            else:
+                nxt_dir = "L"
+        else:
+            if board[e_now_loc[0] - 1][e_now_loc[1]] == 'x':
+                self.e_last_loc = e_now_loc
+                nxt_dir = 'U'
+            elif board[e_now_loc[0]][e_now_loc[1] - 1] == 'x':
+                self.e_last_loc = e_now_loc
+                nxt_dir = 'L'
+
+        # print(nxt_dir)
+
+        # print("Enemy longest Path: " + str(self.calc_board_longest_path(board, e_now_loc)))
+
+        if self.calc_is_met(loc, e_now_loc) or (self.e_last_loc is not None and self.calc_is_met(loc, self.e_last_loc)):
+            self.met = True
+
+        if self.e_last_loc is None or nxt_dir not in possibilities or self.met:
+            possibilities = list(TronProblem.get_safe_actions(board, loc))
+            longest = -1
+            longest_act = "U"
+            for act in possibilities:
+                new_state = TronProblem.transition(asp, state, act)
+                # tmp_longest_path = self.calc_board_loc_score(new_state.board, TronProblem.move(loc, act), locs[1 - ptm])
+                tmp_longest_path = self.calc_board_longest_path(new_state.board, TronProblem.move(loc, act))
+                # print(act + ":" + str(tmp_longest_path))
+                if tmp_longest_path > longest:
+                    longest = tmp_longest_path
+                    longest_act = act
+
+            self.e_last_loc = e_now_loc
+            return longest_act
+        else:
+            self.e_last_loc = e_now_loc
+            return nxt_dir
+
+    def cleanup(self):
+        self.e_last_loc = None
+        self.met = False
 
 
 class RandBot:
