@@ -210,14 +210,44 @@ class BadSurvivor(Survivor):
             armor = new_state.player_has_armor(ptm)
             tmp_longest_path = self.calc_board_longest_path(new_state.board, new_loc, armor, board[new_loc[0]][new_loc[1]])
             e_longest_path = self.calc_board_longest_path(new_state.board, locs[1 - ptm], e_armor, "3")
-            # print(act + ": (me)" + str(tmp_longest_path) + "(enemy)" + str(e_longest_path))
+            max_threat = self.calc_enemy_threat(asp, new_state)
+            val = tmp_longest_path - e_longest_path + max_threat
+            print(act + ": (me)" + str(tmp_longest_path) + "(enemy)" + str(e_longest_path) + "(threat)" + str(max_threat))
 
             # tmp_longest_path = self.calc_board_loc_score(new_state.board, TronProblem.move(loc, act), locs[1 - ptm])
-            if tmp_longest_path - e_longest_path > longest:
-                longest = tmp_longest_path - e_longest_path
+            if val > longest:
+                longest = val
                 longest_act = act
 
         return longest_act
+
+    def calc_enemy_threat(self, asp, intent_state):
+        locs = intent_state.player_locs
+        board = intent_state.board
+        ptm = intent_state.ptm
+        loc = locs[ptm]
+
+        possibilities = list(TronProblem.get_safe_actions(board, loc))
+        for o in self.order:
+            new_loc = TronProblem.move(loc, o)
+            if intent_state.player_has_armor(ptm) and board[new_loc[0]][new_loc[1]] == CellType.BARRIER:
+                possibilities.append(o)
+
+        max_threat = 1000
+        threat_act = "U"
+        for act in possibilities:
+            new_state = TronProblem.transition(asp, intent_state, act)
+            new_loc = TronProblem.move(loc, act)
+            e_armor = new_state.player_has_armor(1 - ptm)
+            e_longest_path = self.calc_board_longest_path(new_state.board, locs[1 - ptm], e_armor, "3")
+            # print(act + ": (me)" + str(tmp_longest_path) + "(enemy)" + str(e_longest_path))
+
+            # tmp_longest_path = self.calc_board_loc_score(new_state.board, TronProblem.move(loc, act), locs[1 - ptm])
+            if e_longest_path < max_threat:
+                max_threat = e_longest_path
+                threat_act = act
+
+        return max_threat
 
     def calc_board_longest_path(self, board, loc, armor, mark):
 
@@ -316,8 +346,10 @@ class Mocker(Survivor):
             longest_act = "U"
             for act in possibilities:
                 new_state = TronProblem.transition(asp, state, act)
+                new_loc = TronProblem.move(loc, act)
+                armor = new_state.player_has_armor(ptm)
                 # tmp_longest_path = self.calc_board_loc_score(new_state.board, TronProblem.move(loc, act), locs[1 - ptm])
-                tmp_longest_path = self.calc_board_longest_path(new_state.board, TronProblem.move(loc, act))
+                tmp_longest_path = self.calc_board_longest_path(new_state.board, TronProblem.move(loc, act), armor, board[new_loc[0]][new_loc[1]])
                 # print(act + ":" + str(tmp_longest_path))
                 if tmp_longest_path > longest:
                     longest = tmp_longest_path
