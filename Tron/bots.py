@@ -58,11 +58,11 @@ class Survivor:
                                 has_armor = False
                             else:
                                 continue
-                        bonus = 0
+
                         if mark == CellType.ARMOR:
                             has_armor = True
-                            bonus = 100.0 / (step + 1)
-                        tmp_res = dfs(new_pos, step + 1 + bonus, vis, order, has_armor)
+
+                        tmp_res = dfs(new_pos, step + 1, vis, order, has_armor)
                         if tmp_res > res:
                             res = tmp_res
 
@@ -80,8 +80,7 @@ class Survivor:
         #     order.append(order[0])
         #     order = order[1:]
         bonus = 0
-        if mark == CellType.ARMOR:
-            bonus = 100
+
         max_res = dfs(loc, bonus, {}, order, armor)
         return max_res
 
