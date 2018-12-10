@@ -76,17 +76,17 @@ class Survivor:
 
         max_res = -1
         order = ["U", "D", "L", "R"]
-        for i in range(4):
-            tmp = dfs(loc, 0, {}, order)
-            if tmp > max_res:
-                max_res = tmp
-            tmp = dfs(loc, 0, {}, order[::-1])
-            if tmp > max_res:
-                max_res = tmp
-            order.append(order[0])
-            order = order[1:]
+        # for i in range(4):
+        #     tmp = dfs(loc, 0, {}, order)
+        #     if tmp > max_res:
+        #         max_res = tmp
+        #     tmp = dfs(loc, 0, {}, order[::-1])
+        #     if tmp > max_res:
+        #         max_res = tmp
+        #     order.append(order[0])
+        #     order = order[1:]
 
-        # max_res = dfs(loc, 0, {}, order)
+        max_res = dfs(loc, 0, {}, order)
 
         return max_res
 
@@ -182,6 +182,31 @@ class Survivor:
         self.max_longest_path = -1
         pass
 
+
+class BadSurvivor(Survivor):
+    def decide(self, asp):
+        state = asp.get_start_state()
+        locs = state.player_locs
+        board = state.board
+
+        ptm = state.ptm
+        loc = locs[ptm]
+
+        possibilities = list(TronProblem.get_safe_actions(board, loc))
+        longest = -1000
+        longest_act = "U"
+        for act in possibilities:
+            new_state = TronProblem.transition(asp, state, act)
+            tmp_longest_path = self.calc_board_longest_path(new_state.board, TronProblem.move(loc, act))
+            e_longest_path = self.calc_board_longest_path(new_state.board, locs[1 - ptm])
+            # tmp_longest_path = self.calc_board_loc_score(new_state.board, TronProblem.move(loc, act), locs[1 - ptm])
+            if tmp_longest_path - e_longest_path > longest:
+                longest = tmp_longest_path - e_longest_path
+                longest_act = act
+
+        return longest_act
+
+
 class Mocker(Survivor):
     def __init__(self):
         super().__init__()
@@ -232,8 +257,8 @@ class Mocker(Survivor):
             longest_act = "U"
             for act in possibilities:
                 new_state = TronProblem.transition(asp, state, act)
-                tmp_longest_path = self.calc_board_loc_score(new_state.board, TronProblem.move(loc, act), locs[1 - ptm])
-                # tmp_longest_path = self.calc_board_longest_path(new_state.board, TronProblem.move(loc, act))
+                # tmp_longest_path = self.calc_board_loc_score(new_state.board, TronProblem.move(loc, act), locs[1 - ptm])
+                tmp_longest_path = self.calc_board_longest_path(new_state.board, TronProblem.move(loc, act))
                 # print(act + ":" + str(tmp_longest_path))
                 if tmp_longest_path > longest:
                     longest = tmp_longest_path
