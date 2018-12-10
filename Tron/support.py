@@ -27,10 +27,12 @@ def determine_bot_functions(bot_names):
             bot_list.append(bots.Survivor())
         elif name == "mocker":
             bot_list.append(bots.Mocker())
+        elif name == "attacker":
+            bot_list.append(bots.Attacker())
         else:
             raise ValueError(
                 """Bot name %s is not supported. Value names include "student",
-"random", "wall", "ta1", "ta2" """
+"random", "wall", "ta1", "ta2" "survivor", "attacker", """
                 % name
             )
     return bot_list

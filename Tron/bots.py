@@ -251,6 +251,94 @@ class Mocker(Survivor):
         self.met = False
 
 
+class Attacker(Survivor):
+    def __init__(self):
+        order = ["R", "D", "L", "U"]
+        Survivor.__init__(self)
+        self.order = order
+        self.visited_barrier_map = {0: [], 1: []}
+
+    def decide(self, asp):
+        state = asp.get_start_state()
+        locs = state.player_locs
+        board = state.board
+        ptm = state.ptm
+        loc = locs[ptm]
+        self.visited_barrier_map[ptm].append(loc)
+        possibilities = list(TronProblem.get_safe_actions(board, loc))
+        if not possibilities:
+            return "R"
+        # random.shuffle(possibilities)
+
+        met = self.check_meet(board, locs, ptm)
+        # print("met: " + str(met))
+        same_room, _ = self.get_dist(board, locs[ptm], locs[1 - ptm])
+        # print("same_room: " + str(same_room))
+
+        if same_room and (not met):  # not met yet, attack, shorter dist
+            decision = possibilities[0]
+            dist = 100
+            for move in possibilities:
+                next_loc = TronProblem.move(loc, move)
+                if len(TronProblem.get_safe_actions(board, next_loc)) > 0:
+                    cur_same_room, cur_dist = self.get_dist(board, next_loc, locs[1 - ptm])
+                    if cur_same_room and cur_dist < dist:
+                        dist = cur_dist
+                        decision = move
+            return decision
+        else:  # met or in different room, survive, longer dist
+            longest = -1
+            longest_act = possibilities[0]
+            for act in possibilities:
+                new_state = TronProblem.transition(asp, state, act)
+                # tmp_longest_path = self.calc_board_loc_score(new_state.board, TronProblem.move(loc, act), locs[1 - ptm])
+                tmp_longest_path = self.calc_board_longest_path(new_state.board, TronProblem.move(loc, act))
+                if tmp_longest_path > longest:
+                    longest = tmp_longest_path
+                    longest_act = act
+            return longest_act
+
+    def check_meet(self, board, locs, ptm):
+        for i in [0, 0, 0, 0, 1, 1, -1, -1]:
+            for j in [1, 1, -1, -1, 0, 0, 0, 0]:
+                new_pos = (locs[ptm][0] + i, locs[ptm][1] + j)
+                mark = board[new_pos[0]][new_pos[1]]
+                if new_pos == locs[1 - ptm]:
+                    return True
+                if mark == CellType.BARRIER and (new_pos not in self.visited_barrier_map[ptm]):
+                    return True
+        return False
+
+    def get_dist(self, board, loc1, loc2):
+        q = queue.Queue()
+        visited = {}
+
+        cur_dist = 0
+        q.put(loc1)
+        visited[loc1] = 0
+        while not q.empty():
+            loc = q.get()
+            cur_dist = visited[loc]
+
+            for i in [0, 0, 1, -1]:
+                for j in [1, -1, 0, 0]:
+                    new_pos = (loc[0] + i, loc[1] + j)
+                    if new_pos == loc2:
+                        return True, cur_dist
+
+            possibilities = list(TronProblem.get_safe_actions(board, loc))
+            for act in possibilities:
+                next_loc = TronProblem.move(loc, act)
+                if next_loc not in visited:
+                    q.put(next_loc)
+                    visited[next_loc] = visited[loc] + 1
+
+        return False, cur_dist
+
+    def cleanup(self):
+        pass
+
+
 class RandBot:
     """Moves in a random (safe) direction"""
 
