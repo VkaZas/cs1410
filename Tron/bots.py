@@ -20,7 +20,7 @@ class StudentBot:
     def cleanup(self):
         self.bot = BadSurvivor()
 
-ARMOR_BASE = 0.5
+ARMOR_BASE = 100
 SPEEDUP_BASE = -0.1
 TRAP_BASE = 0.5
 BOMB_BASE = 0.5
@@ -39,9 +39,9 @@ class Survivor:
             return True
         return False
 
-    def calc_board_longest_path(self, board, loc):
+    def calc_board_longest_path(self, board, loc, armor, mark):
 
-        def dfs(pos, step, vis, order):
+        def dfs(pos, step, vis, order, armor):
             res = -1
             vis[pos] = step
             if step > res:
@@ -50,9 +50,19 @@ class Survivor:
                 for dir in order:
                     new_pos = TronProblem.move(pos, dir)
                     mark = board[new_pos[0]][new_pos[1]]
-                    if mark != CellType.WALL and mark != CellType.BARRIER \
+                    has_armor = armor
+                    if mark != CellType.WALL \
                             and mark != '1' and mark != '2' and vis.get(new_pos) is None:
-                        tmp_res = dfs(new_pos, step + 1, vis, order)
+                        if mark == CellType.BARRIER:
+                            if has_armor:
+                                has_armor = False
+                            else:
+                                continue
+                        bonus = 0
+                        if mark == CellType.ARMOR:
+                            has_armor = True
+                            bonus = 100.0 / (step + 1)
+                        tmp_res = dfs(new_pos, step + 1 + bonus, vis, order, has_armor)
                         if tmp_res > res:
                             res = tmp_res
 
@@ -69,21 +79,21 @@ class Survivor:
         #         max_res = tmp
         #     order.append(order[0])
         #     order = order[1:]
-
-        max_res = dfs(loc, 0, {}, order)
-
+        bonus = 0
+        if mark == CellType.ARMOR:
+            bonus = 100
+        max_res = dfs(loc, bonus, {}, order, armor)
         return max_res
 
-    def calc_powerups_adjopencells(self, board, loc):
+    def calc_powerups_adjopencells(self, board, loc, self_mark):
         q = queue.Queue()
         q.put(loc)
         vis = {loc: 0}
         powerups = []
         adjopencells = [0, 0]
 
-        mark = board[loc[0]][loc[1]]
-        if mark == CellType.ARMOR or mark == CellType.BOMB or mark == CellType.SPEED or mark == CellType.TRAP:
-            powerups.append((0, mark))
+        if self_mark == CellType.ARMOR or self_mark == CellType.BOMB or self_mark == CellType.SPEED or self_mark == CellType.TRAP:
+            powerups.append((0, self_mark))
 
         while not q.empty():
             h = q.get()
@@ -95,7 +105,8 @@ class Survivor:
                     now_dist = vis.get(h) + 1
                     vis[new_pos] = now_dist
                     q.put(new_pos)
-                    if mark == CellType.ARMOR or mark == CellType.BOMB or mark == CellType.SPEED or mark == CellType.TRAP:
+                    if mark == CellType.ARMOR or mark == CellType.BOMB \
+                            or mark == CellType.SPEED or mark == CellType.TRAP:
                         powerups.append((now_dist, mark))
                     if now_dist == 1:
                         adjopencells[0] += 1
@@ -104,15 +115,16 @@ class Survivor:
 
         return powerups, adjopencells
 
-    def calc_board_loc_score(self, board, loc, enemy_loc):
-        longest_path = self.calc_board_longest_path(board, loc)
+    def calc_board_loc_score(self, board, loc, enemy_loc, self_mark, armor):
+        longest_path = self.calc_board_longest_path(board, loc, armor, self_mark)
         if longest_path > self.max_longest_path:
             self.max_longest_path = longest_path
-        powerups, adjopencells = self.calc_powerups_adjopencells(board, loc)
-        e_longest_path = self.calc_board_longest_path(board, enemy_loc)
+        powerups, adjopencells = self.calc_powerups_adjopencells(board, loc, self_mark)
+
+        e_longest_path = self.calc_board_longest_path(board, enemy_loc, False, "3")
         if e_longest_path > self.max_longest_path:
             self.max_longest_path = e_longest_path
-        e_powerups, e_adjopencells = self.calc_powerups_adjopencells(board, enemy_loc)
+        e_powerups, e_adjopencells = self.calc_powerups_adjopencells(board, enemy_loc, board[enemy_loc[0]][enemy_loc[1]])
 
         def calc_openlvl(aoc):
             return (aoc[0] * 2 + aoc[1]) / (8 * 2 + 12)
@@ -158,8 +170,10 @@ class Survivor:
         longest_act = "U"
         for act in possibilities:
             new_state = TronProblem.transition(asp, state, act)
-            tmp_longest_path = self.calc_board_longest_path(new_state.board, TronProblem.move(loc, act))
-            # tmp_longest_path = self.calc_board_loc_score(new_state.board, TronProblem.move(loc, act), locs[1 - ptm])
+            # tmp_longest_path = self.calc_board_longest_path(new_state.board, TronProblem.move(loc, act))
+            new_loc = TronProblem.move(loc, act)
+            tmp_longest_path = self.calc_board_loc_score(new_state.board, new_loc, locs[1 - ptm],
+                                                         board[new_loc[0]][new_loc[1]], new_state.player_has_armor(ptm))
             if tmp_longest_path > longest:
                 longest = tmp_longest_path
                 longest_act = act
@@ -340,18 +354,16 @@ class Attacker(Survivor):
         # random.shuffle(possibilities)
 
         met = self.check_meet(board, locs, ptm)
-        # print("met: " + str(met))
         same_room, _ = self.get_dist(board, locs[ptm], locs[1 - ptm])
-        # print("same_room: " + str(same_room))
 
         if same_room and (not met):  # not met yet, attack, shorter dist
             decision = possibilities[0]
             dist = 100
             for move in possibilities:
                 next_loc = TronProblem.move(loc, move)
-                if len(TronProblem.get_safe_actions(board, next_loc)) > 0:
-                    cur_same_room, cur_dist = self.get_dist(board, next_loc, locs[1 - ptm])
-                    # print("next loc " + move + " to op: " + str(cur_dist))
+                new_state = TronProblem.transition(asp, state, move)
+                if len(TronProblem.get_safe_actions(new_state.board, next_loc)) > 0:
+                    cur_same_room, cur_dist = self.get_dist(new_state.board, next_loc, locs[1 - ptm])
                     if cur_same_room and cur_dist < dist:
                         dist = cur_dist
                         decision = move
@@ -361,8 +373,8 @@ class Attacker(Survivor):
             longest_act = possibilities[0]
             for act in possibilities:
                 new_state = TronProblem.transition(asp, state, act)
-                tmp_longest_path = self.calc_board_loc_score(new_state.board, TronProblem.move(loc, act), locs[1 - ptm])
-                # tmp_longest_path = self.calc_board_longest_path(new_state.board, TronProblem.move(loc, act))
+                # tmp_longest_path = self.calc_board_loc_score(new_state.board, TronProblem.move(loc, act), locs[1 - ptm])
+                tmp_longest_path = self.calc_board_longest_path(new_state.board, TronProblem.move(loc, act))
                 if tmp_longest_path > longest:
                     longest = tmp_longest_path
                     longest_act = act
