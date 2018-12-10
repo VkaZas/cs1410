@@ -6,7 +6,6 @@ from trontypes import CellType, PowerupType
 import random, math
 import queue
 
-
 # Throughout this file, ASP means adversarial search problem.
 
 
@@ -224,10 +223,10 @@ class Mocker(Survivor):
 
         # print("Enemy longest Path: " + str(self.calc_board_longest_path(board, e_now_loc)))
 
-        if self.calc_is_met(loc, e_now_loc) or (self.e_last_loc is not None and self.calc_is_met(loc, self.e_last_loc)):
+        if nxt_dir not in possibilities or self.calc_is_met(loc, e_now_loc) or (self.e_last_loc is not None and self.calc_is_met(loc, self.e_last_loc)):
             self.met = True
 
-        if self.e_last_loc is None or nxt_dir not in possibilities or self.met:
+        if self.e_last_loc is None or self.met:
             possibilities = list(TronProblem.get_safe_actions(board, loc))
             longest = -1
             longest_act = "U"

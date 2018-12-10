@@ -23,12 +23,7 @@ def run_game(asp, bots, visualizer=None, delay=0.2, max_wait=0.3, colored=True):
         visualizer(state, colored)
         time.sleep(delay)
 
-    cnt = 1000
     while not (asp.is_terminal_state(state)):
-        if cnt == 0:
-            break
-        else:
-            cnt -= 1
         exposed = copy.deepcopy(asp)
         signal.signal(signal.SIGALRM, support.timeout_handler)
         signal.setitimer(signal.ITIMER_REAL, max_wait)
