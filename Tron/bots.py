@@ -10,31 +10,15 @@ import queue
 
 
 class StudentBot:
-    """ Write your student bot here"""
+    def __init__(self):
+        self.BOT_NAME = "T_T"
+        self.bot = BadSurvivor()
 
     def decide(self, asp):
-        """
-        Input: asp, a TronProblem
-        Output: A direction in {'U','D','L','R'}
-
-        To get started, you can get the current
-        state by calling asp.get_start_state()
-        """
-        return "U"
+        return self.bot.decide(asp)
 
     def cleanup(self):
-        """
-        Input: None
-        Output: None
-
-        This function will be called in between
-        games during grading. You can use it
-        to reset any variables your bot uses during the game
-        (for example, you could use this function to reset a
-        turns_elapsed counter to zero). If you don't need it,
-        feel free to leave it as "pass"
-        """
-        pass
+        self.bot = BadSurvivor()
 
 ARMOR_BASE = 0.5
 SPEEDUP_BASE = -0.1
@@ -75,7 +59,7 @@ class Survivor:
             return res
 
         max_res = -1
-        order = ["U", "D", "L", "R"]
+        order = ["U", "R", "D", "L"]
         # for i in range(4):
         #     tmp = dfs(loc, 0, {}, order)
         #     if tmp > max_res:
@@ -96,6 +80,10 @@ class Survivor:
         vis = {loc: 0}
         powerups = []
         adjopencells = [0, 0]
+
+        mark = board[loc[0]][loc[1]]
+        if mark == CellType.ARMOR or mark == CellType.BOMB or mark == CellType.SPEED or mark == CellType.TRAP:
+            powerups.append((0, mark))
 
         while not q.empty():
             h = q.get()
@@ -192,19 +180,76 @@ class BadSurvivor(Survivor):
         ptm = state.ptm
         loc = locs[ptm]
 
+        e_armor = state.player_has_armor(1 - ptm)
+
         possibilities = list(TronProblem.get_safe_actions(board, loc))
+        for o in self.order:
+            new_loc = TronProblem.move(loc, o)
+            if state.player_has_armor(ptm) and board[new_loc[0]][new_loc[1]] == CellType.BARRIER:
+                possibilities.append(o)
+
         longest = -1000
         longest_act = "U"
         for act in possibilities:
             new_state = TronProblem.transition(asp, state, act)
-            tmp_longest_path = self.calc_board_longest_path(new_state.board, TronProblem.move(loc, act))
-            e_longest_path = self.calc_board_longest_path(new_state.board, locs[1 - ptm])
+            new_loc = TronProblem.move(loc, act)
+            armor = new_state.player_has_armor(ptm)
+            tmp_longest_path = self.calc_board_longest_path(new_state.board, new_loc, armor, board[new_loc[0]][new_loc[1]])
+            e_longest_path = self.calc_board_longest_path(new_state.board, locs[1 - ptm], e_armor, "3")
+            # print(act + ": (me)" + str(tmp_longest_path) + "(enemy)" + str(e_longest_path))
+
             # tmp_longest_path = self.calc_board_loc_score(new_state.board, TronProblem.move(loc, act), locs[1 - ptm])
             if tmp_longest_path - e_longest_path > longest:
                 longest = tmp_longest_path - e_longest_path
                 longest_act = act
 
         return longest_act
+
+    def calc_board_longest_path(self, board, loc, armor, mark):
+
+        def dfs(pos, step, vis, order, armor):
+            res = -1
+            vis[pos] = step
+            if step > res:
+                res = step
+
+                for dir in order:
+                    new_pos = TronProblem.move(pos, dir)
+                    mark = board[new_pos[0]][new_pos[1]]
+                    has_armor = armor
+                    if mark != CellType.WALL \
+                            and mark != '1' and mark != '2' and vis.get(new_pos) is None:
+                        if mark == CellType.BARRIER:
+                            if has_armor:
+                                has_armor = False
+                            else:
+                                continue
+                        bonus = 0
+                        if mark == CellType.ARMOR:
+                            has_armor = True
+                            bonus = 100.0 / (step + 1)
+                        tmp_res = dfs(new_pos, step + 1 + bonus, vis, order, has_armor)
+                        if tmp_res > res:
+                            res = tmp_res
+
+            return res
+
+        max_res = -1
+        order = ["U", "R", "D", "L"]
+        # for i in range(4):
+        #     tmp = dfs(loc, 0, {}, order)
+        #     if tmp > max_res:
+        #         max_res = tmp
+        #     tmp = dfs(loc, 0, {}, order[::-1])
+        #     if tmp > max_res:
+        #         max_res = tmp
+        #     order.append(order[0])
+        #     order = order[1:]
+        bonus = 0
+        if mark == CellType.ARMOR:
+            bonus = 100
+        max_res = dfs(loc, bonus, {}, order, armor)
+        return max_res
 
 
 class Mocker(Survivor):
