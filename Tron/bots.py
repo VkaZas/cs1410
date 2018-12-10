@@ -6,6 +6,7 @@ from trontypes import CellType, PowerupType
 import random, math
 import queue
 
+
 # Throughout this file, ASP means adversarial search problem.
 
 
@@ -36,12 +37,12 @@ class StudentBot:
         """
         pass
 
-ARMOR_BASE = 0.9
-SPEEDUP_BASE = -0.9
-TRAP_BASE = 0.9
-BOMB_BASE = 0.9
+ARMOR_BASE = 0.5
+SPEEDUP_BASE = -0.1
+TRAP_BASE = 0.5
+BOMB_BASE = 0.5
 
-MAX_DISTANCE = 28
+MAX_DISTANCE = 100
 
 
 class Survivor:
@@ -170,8 +171,8 @@ class Survivor:
         longest_act = "U"
         for act in possibilities:
             new_state = TronProblem.transition(asp, state, act)
-            tmp_longest_path = self.calc_board_loc_score(new_state.board, TronProblem.move(loc, act), locs[1 - ptm])
-            # tmp_longest_path = self.calc_board_longest_path(new_state.board, TronProblem.move(loc, act))
+            tmp_longest_path = self.calc_board_longest_path(new_state.board, TronProblem.move(loc, act))
+            # tmp_longest_path = self.calc_board_loc_score(new_state.board, TronProblem.move(loc, act), locs[1 - ptm])
             if tmp_longest_path > longest:
                 longest = tmp_longest_path
                 longest_act = act
@@ -181,7 +182,6 @@ class Survivor:
     def cleanup(self):
         self.max_longest_path = -1
         pass
-
 
 class Mocker(Survivor):
     def __init__(self):
@@ -233,8 +233,8 @@ class Mocker(Survivor):
             longest_act = "U"
             for act in possibilities:
                 new_state = TronProblem.transition(asp, state, act)
-                # tmp_longest_path = self.calc_board_loc_score(new_state.board, TronProblem.move(loc, act), locs[1 - ptm])
-                tmp_longest_path = self.calc_board_longest_path(new_state.board, TronProblem.move(loc, act))
+                tmp_longest_path = self.calc_board_loc_score(new_state.board, TronProblem.move(loc, act), locs[1 - ptm])
+                # tmp_longest_path = self.calc_board_longest_path(new_state.board, TronProblem.move(loc, act))
                 # print(act + ":" + str(tmp_longest_path))
                 if tmp_longest_path > longest:
                     longest = tmp_longest_path
@@ -282,6 +282,7 @@ class Attacker(Survivor):
                 next_loc = TronProblem.move(loc, move)
                 if len(TronProblem.get_safe_actions(board, next_loc)) > 0:
                     cur_same_room, cur_dist = self.get_dist(board, next_loc, locs[1 - ptm])
+                    # print("next loc " + move + " to op: " + str(cur_dist))
                     if cur_same_room and cur_dist < dist:
                         dist = cur_dist
                         decision = move
@@ -291,8 +292,8 @@ class Attacker(Survivor):
             longest_act = possibilities[0]
             for act in possibilities:
                 new_state = TronProblem.transition(asp, state, act)
-                # tmp_longest_path = self.calc_board_loc_score(new_state.board, TronProblem.move(loc, act), locs[1 - ptm])
-                tmp_longest_path = self.calc_board_longest_path(new_state.board, TronProblem.move(loc, act))
+                tmp_longest_path = self.calc_board_loc_score(new_state.board, TronProblem.move(loc, act), locs[1 - ptm])
+                # tmp_longest_path = self.calc_board_longest_path(new_state.board, TronProblem.move(loc, act))
                 if tmp_longest_path > longest:
                     longest = tmp_longest_path
                     longest_act = act
@@ -305,7 +306,7 @@ class Attacker(Survivor):
                 mark = board[new_pos[0]][new_pos[1]]
                 if new_pos == locs[1 - ptm]:
                     return True
-                if mark == CellType.BARRIER and (new_pos not in self.visited_barrier_map[ptm]):
+                if mark == CellType.BARRIER and (new_pos in self.visited_barrier_map[1 - ptm]):
                     return True
         return False
 
@@ -336,8 +337,7 @@ class Attacker(Survivor):
         return False, cur_dist
 
     def cleanup(self):
-        pass
-
+        self.visited_barrier_map = {0: [], 1: []}
 
 class RandBot:
     """Moves in a random (safe) direction"""
