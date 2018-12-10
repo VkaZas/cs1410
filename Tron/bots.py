@@ -58,31 +58,18 @@ class Survivor:
                                 has_armor = False
                             else:
                                 continue
-                        bonus = 0
+
                         if mark == CellType.ARMOR:
                             has_armor = True
-                            bonus = 100.0 / (step + 1)
-                        tmp_res = dfs(new_pos, step + 1 + bonus, vis, order, has_armor)
+
+                        tmp_res = dfs(new_pos, step + 1, vis, order, has_armor)
                         if tmp_res > res:
                             res = tmp_res
 
             return res
 
-        max_res = -1
         order = ["U", "R", "D", "L"]
-        # for i in range(4):
-        #     tmp = dfs(loc, 0, {}, order)
-        #     if tmp > max_res:
-        #         max_res = tmp
-        #     tmp = dfs(loc, 0, {}, order[::-1])
-        #     if tmp > max_res:
-        #         max_res = tmp
-        #     order.append(order[0])
-        #     order = order[1:]
-        bonus = 0
-        if mark == CellType.ARMOR:
-            bonus = 100
-        max_res = dfs(loc, bonus, {}, order, armor)
+        max_res = dfs(loc, 0, {}, order, armor)
         return max_res
 
     def calc_powerups_adjopencells(self, board, loc, self_mark):
@@ -170,7 +157,6 @@ class Survivor:
         longest_act = "U"
         for act in possibilities:
             new_state = TronProblem.transition(asp, state, act)
-            # tmp_longest_path = self.calc_board_longest_path(new_state.board, TronProblem.move(loc, act))
             new_loc = TronProblem.move(loc, act)
             tmp_longest_path = self.calc_board_loc_score(new_state.board, new_loc, locs[1 - ptm],
                                                          board[new_loc[0]][new_loc[1]], new_state.player_has_armor(ptm))
@@ -208,11 +194,16 @@ class BadSurvivor(Survivor):
             new_state = TronProblem.transition(asp, state, act)
             new_loc = TronProblem.move(loc, act)
             armor = new_state.player_has_armor(ptm)
+
+            # tmp_longest_path = self.calc_board_loc_score(new_state.board, new_loc, locs[1 - ptm],
+            #                                              board[new_loc[0]][new_loc[1]], new_state.player_has_armor(ptm))
+            # e_longest_path = self.calc_board_loc_score(new_state.board, locs[1 - ptm], new_loc,
+            #                                            board[locs[1 - ptm][0]][locs[1 - ptm][1]], e_armor)
+
             tmp_longest_path = self.calc_board_longest_path(new_state.board, new_loc, armor, board[new_loc[0]][new_loc[1]])
             e_longest_path = self.calc_board_longest_path(new_state.board, locs[1 - ptm], e_armor, "3")
             # print(act + ": (me)" + str(tmp_longest_path) + "(enemy)" + str(e_longest_path))
 
-            # tmp_longest_path = self.calc_board_loc_score(new_state.board, TronProblem.move(loc, act), locs[1 - ptm])
             if tmp_longest_path - e_longest_path > longest:
                 longest = tmp_longest_path - e_longest_path
                 longest_act = act
