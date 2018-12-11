@@ -12,13 +12,13 @@ import queue
 class StudentBot:
     def __init__(self):
         self.BOT_NAME = "T_T"
-        self.bot = BadSurvivor()
+        self.bot = Thinker()
 
     def decide(self, asp):
         return self.bot.decide(asp)
 
     def cleanup(self):
-        self.bot = BadSurvivor()
+        self.bot = Thinker()
 
 ARMOR_BASE = 0
 SPEEDUP_BASE = -0.1
@@ -515,25 +515,58 @@ def calc_dist(asp, start):
     return dist
 
 
+def calc_grid_value(mark, same_room):
+    if mark == CellType.SPACE:
+        return 1
+    if mark == CellType.ARMOR:
+        if same_room:
+            return 2
+        else:
+            return 3
+    if mark == CellType.TRAP:
+        if same_room:
+            return 2
+        else:
+            return 3
+    if mark == CellType.SPEED:
+        if same_room:
+            return 4
+        else:
+            return -3
+    if mark == CellType.BOMB:
+        if same_room:
+            return 4
+        else:
+            return 6
+    return 1
+
+
 def eval_board(asp, state, player):
     dists = [calc_dist(asp, state.player_locs[0]), calc_dist(asp, state.player_locs[1])]
     scores = [0, 0]
+    same_room = dists[0].get(state.player_locs[1]) is not None
 
     for r in range(len(state.board)):
         for c in range(len(state.board[0])):
             loc = (r, c)
+            mark = state.board[r][c]
             if dists[0].get(loc) is None and dists[1].get(loc) is not None:
-                scores[1] += 1
+                scores[1] += calc_grid_value(mark, same_room)
             elif dists[1].get(loc) is None and dists[0].get(loc) is not None:
-                scores[0] += 1
+                scores[0] += calc_grid_value(mark, same_room)
             elif dists[0].get(loc) is not None and dists[1].get(loc) is not None:
                 if dists[0].get(loc) < dists[1].get(loc):
-                    scores[0] += 1
+                    scores[0] += calc_grid_value(mark, same_room)
                 else:
-                    scores[1] += 1
+                    scores[1] += calc_grid_value(mark, same_room)
 
-    sum = scores[0] + scores[1]
-    return [scores[0] / sum, scores[1] / sum][player]
+    if scores[0] < 0:
+        scores[0] = 0
+    if scores[1] < 0:
+        scores[1] = 0
+    sum_score = scores[0] + scores[1]
+    # print(sum_score)
+    return [scores[0] / sum_score, scores[1] / sum_score][player]
 
 
 def abc_helper(asp, state, ab, level, eval_func, player, cnt):
