@@ -31,6 +31,8 @@ def determine_bot_functions(bot_names):
             bot_list.append(bots.Attacker())
         elif name == "bad":
             bot_list.append(bots.BadSurvivor())
+        elif name == "thinker":
+            bot_list.append(bots.Thinker())
         else:
             raise ValueError(
                 """Bot name %s is not supported. Value names include "student",
